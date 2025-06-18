@@ -12,7 +12,6 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // More robust check: ensure variables are present and not empty/whitespace
   const isValidSupabaseConfig = 
     supabaseUrl && supabaseUrl.trim() !== "" &&
     supabaseAnonKey && supabaseAnonKey.trim() !== "";
@@ -23,14 +22,12 @@ export async function middleware(request: NextRequest) {
       "Authentication and Supabase-dependent features will not function correctly. " +
       "Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env.local file and the server is restarted."
     );
-    // Allow the request to proceed. The layout.tsx should catch this for page renders and show an error UI.
-    // For API routes or other non-UI paths, this might mean they operate without Supabase context.
     return response;
   }
 
   const supabase = createServerClient(
-    supabaseUrl, // Use the validated and non-null supabaseUrl
-    supabaseAnonKey, // Use the validated and non-null supabaseAnonKey
+    supabaseUrl, 
+    supabaseAnonKey, 
     {
       cookies: {
         get(name: string) {
@@ -38,7 +35,6 @@ export async function middleware(request: NextRequest) {
         },
         set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options })
-          // Ensure the response object is updated when cookies are set
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -48,7 +44,6 @@ export async function middleware(request: NextRequest) {
         },
         remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options })
-           // Ensure the response object is updated when cookies are removed
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -60,16 +55,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid running middleware on API routes, static files, and _next paths
-  // to prevent infinite loops or unintended behavior.
   const { pathname } = request.nextUrl;
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
-    pathname.startsWith('/static') || // if you have a /static folder
-    pathname.endsWith('.ico') || // common icons
-    pathname.endsWith('.png') || // common image types
+    pathname.startsWith('/static') || 
+    pathname.endsWith('.ico') || 
+    pathname.endsWith('.png') || 
     pathname.endsWith('.jpg') ||
     pathname.endsWith('.jpeg') ||
     pathname.endsWith('.gif') ||
@@ -79,20 +72,16 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Refresh session if expired - important to do before
-  // accessing `getSession()` to ensure it's accurate.
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Basic route protection:
-  // If trying to access protected routes and no session, redirect to /auth
   const protectedPaths = ['/dashboard', '/dreams', '/profile'];
   if (!session && protectedPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // If user is authenticated and tries to access /auth, redirect to /dashboard
+  // If user is authenticated and tries to access /auth, redirect to / (home page)
   if (session && pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return response
@@ -100,15 +89,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - static (custom static folder)
-     * - various image and icon extensions
-     * This ensures middleware runs on page navigations.
-     */
     '/((?!api|_next/static|_next/image|static|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp)$).*)',
   ],
 }

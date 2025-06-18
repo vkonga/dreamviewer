@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { loginUser, registerUser } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 
@@ -32,6 +32,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 function AuthForm() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,32 +57,34 @@ function AuthForm() {
   } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         // If a user becomes authenticated while on this page (e.g. already logged in, or different tab login)
-        // redirect them away from /auth to the dashboard.
+        // redirect them away from /auth to the home page.
         // The specific redirection *after clicking the login button* is handled in onLogin.
-        if (router.pathname === '/auth' || router.pathname === '/auth/') { // Check if current page is auth
-             router.push("/dashboard");
+        // Middleware also handles redirecting already authenticated users. This is a client-side safeguard.
+        if (pathname === '/auth' || pathname === '/auth/') { 
+             router.push("/");
         }
       }
     });
 
-    // Check initial auth state: if user lands on /auth but is already logged in, redirect to dashboard.
+    // Check initial auth state: if user lands on /auth but is already logged in, redirect to home page.
+    // Middleware should primarily handle this.
     const checkInitialSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            if (router.pathname === '/auth' || router.pathname === '/auth/') {
-                 router.push("/dashboard");
+            if (pathname === '/auth' || pathname === '/auth/') {
+                 router.push("/");
             }
         }
     };
     checkInitialSession();
 
     return () => {
-      subscription?.unsubscribe();
+      authListener?.subscription?.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router, supabase, pathname]);
 
 
   const onLogin: SubmitHandler<LoginFormData> = async (data) => {
@@ -104,6 +107,10 @@ function AuthForm() {
     if (result.success) {
       toast({ title: "Registration Attempted", description: result.message }); 
       resetSignup();
+      // If registration implies immediate login (depends on Supabase settings, e.g. email confirmation)
+      // and result.message indicates a login or session is active, you might redirect here too.
+      // For now, relying on onAuthStateChange or user navigating after seeing message.
+      // If email confirmation is OFF, Supabase logs user in, onAuthStateChange will trigger redirect.
     } else {
       toast({ title: "Registration Failed", description: result.message, variant: "destructive" });
     }

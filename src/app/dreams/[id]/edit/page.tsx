@@ -1,0 +1,68 @@
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { AppShell } from "@/components/layout/app-shell";
+import { DreamEditorForm } from "@/components/dreams/dream-editor-form";
+import { getDreamById } from "@/lib/actions";
+import type { Dream } from "@/lib/definitions";
+import { notFound, useRouter } from "next/navigation";
+import { Loader2, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
+
+export default function EditDreamPage({ params }: { params: { id: string } }) {
+  const [dream, setDream] = useState<Dream | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchDream() {
+      const fetchedDream = await getDreamById(params.id);
+      if (fetchedDream) {
+        setDream(fetchedDream);
+      } else {
+        notFound();
+      }
+      setIsLoading(false);
+    }
+    fetchDream();
+  }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!dream) {
+    // Should be handled by notFound, but as a fallback
+    return (
+      <AppShell>
+        <p>Dream not found.</p>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <div className="max-w-3xl mx-auto">
+         <div className="mb-6 flex items-center gap-4">
+          <Button variant="outline" size="icon" asChild>
+            <Link href={`/dreams/${params.id}`} aria-label="Back to Dream View">
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <h1 className="font-headline text-3xl md:text-4xl font-bold">Edit Dream</h1>
+        </div>
+        <Separator className="my-6" />
+        <DreamEditorForm dream={dream} onFormSubmit={() => router.push(`/dreams/${params.id}`)} />
+      </div>
+    </AppShell>
+  );
+}

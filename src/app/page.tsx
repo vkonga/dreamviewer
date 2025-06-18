@@ -113,7 +113,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Upcoming AI Magic</h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center"> {/* Changed justify-center to justify-items-center for better centering of cards */}
+            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center">
               <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${4 * 150}ms`}}>
                 <CardHeader>
                   <Film className="mx-auto h-12 w-12 text-accent mb-4" />
@@ -121,8 +121,15 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">Transform snippets of your dream journal entries into short, evocative video clips. Describe a scene, and let our AI bring it to life based on your AI-acceptable prompts.</p>
-                  <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
-                    <Image src={`https://placehold.co/400x250.png`} alt="Text to Video Feature" layout="fill" objectFit="cover" data-ai-hint="AI video" />
+                  <div className="mt-4 h-48 w-full overflow-hidden rounded-md">
+                    <iframe
+                      className="w-full h-full"
+                      src="https://g.co/gemini/share/73a2ca14f3a6"
+                      title="Upcoming Dream to Video Feature Preview"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
                   </div>
                 </CardContent>
               </Card>
@@ -133,12 +140,11 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">Discover recurring family figures or ancestral connections in your dreams. Let AI help visualize these relationships from your dream journal entries.</p>
-                  <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
+                  <div className="mt-4 h-48 w-full relative overflow-hidden rounded-md">
                     <Image src={`https://placehold.co/400x250.png`} alt="AI Family Tree Feature" layout="fill" objectFit="cover" data-ai-hint="family tree" />
                   </div>
                 </CardContent>
               </Card>
-              {/* You can add more upcoming feature cards here by duplicating the Card structure */}
             </div>
           </div>
         </section>

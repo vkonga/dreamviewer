@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Check if Supabase environment variables are defined and not empty
+  // More robust check: ensure variables are present and not empty/whitespace
   const isValidSupabaseConfig = 
     supabaseUrl && supabaseUrl.trim() !== "" &&
     supabaseAnonKey && supabaseAnonKey.trim() !== "";

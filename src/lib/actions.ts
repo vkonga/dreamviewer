@@ -3,64 +3,75 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { Dream, DreamFormValues, AIInterpretation, User } from "./definitions";
-import { interpretDream as runAIInterpretation, type InterpretDreamOutput } from "@/ai/flows/interpret-dream";
+import type { Dream, DreamFormValues, AIInterpretation, User, DreamTableRow } from "./definitions";
+import { interpretDream as runAIInterpretationFlow, type InterpretDreamOutput } from "@/ai/flows/interpret-dream";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserMetadata } from "@/lib/supabase/database.types";
 
-// Mock database for dreams - This should eventually be replaced by Supabase tables
-let dreams: Dream[] = [
-  {
-    id: "1",
-    userId: "mockUser123", // This will be the Supabase user ID
-    title: "Flying Over Mountains",
-    date: new Date("2024-07-15T00:00:00.000Z"),
-    description: "I dreamt I was soaring over vast mountain ranges, the wind in my hair. It felt liberating.",
-    tags: ["flying", "mountains", "freedom"],
-    emotions: ["Excited", "Peaceful", "Awe"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    aiInterpretation: {
-      overallMeaning: "Flying dreams often symbolize a sense of freedom, ambition, and a desire to overcome obstacles. Soaring over mountains could indicate a feeling of rising above challenges or gaining a new perspective on life.",
-      symbols: [
-        { symbol: "Flying", meaning: "Freedom, liberation, new perspectives, ambition." },
-        { symbol: "Mountains", meaning: "Obstacles, challenges, achievements, spiritual elevation." },
-      ],
-      emotionalTone: "Positive, empowering, and liberating."
-    }
-  },
-  {
-    id: "2",
-    userId: "mockUser123",
-    title: "Lost in a Maze",
-    date: new Date("2024-07-18T00:00:00.000Z"),
-    description: "I was trapped in an endless, shifting maze. I felt anxious and couldn't find the exit.",
-    tags: ["maze", "lost", "anxiety"],
-    emotions: ["Anxious", "Confused", "Scared"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+// Helper function to convert Supabase dream row to application Dream type
+function fromSupabaseRow(row: DreamTableRow): Dream {
+  return {
+    ...row,
+    date: new Date(row.date),
+    tags: row.tags || [],
+    emotions: row.emotions || [],
+    ai_interpretation: row.ai_interpretation || undefined,
+    created_at: new Date(row.created_at),
+    updated_at: new Date(row.updated_at),
+  };
+}
+
 
 const DreamFormSchema = z.object({
   title: z.string().min(1, "Title is required."),
-  date: z.date({ coerce: true }),
+  date: z.date({ coerce: true }), // Coerces input to Date object
   description: z.string().min(1, "Description is required."),
   tags: z.string().optional(), 
   emotions: z.array(z.string()).optional(),
 });
 
-// Dream actions (still mock, to be updated to use Supabase DB later)
+// Dream actions using Supabase
 export async function getDreams(): Promise<Dream[]> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  // In a real app, filter dreams by the authenticated user's ID from Supabase
-  return dreams.sort((a,b) => b.date.getTime() - a.date.getTime());
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return []; // Or throw an error, depending on how you want to handle unauthenticated access
+  }
+
+  const { data, error } = await supabase
+    .from("dreams")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("date", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching dreams:", error);
+    return [];
+  }
+  return data ? data.map(fromSupabaseRow) : [];
 }
 
 export async function getDreamById(id: string): Promise<Dream | undefined> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  // In a real app, also check if the dream belongs to the authenticated user
-  return dreams.find((dream) => dream.id === id);
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return undefined; 
+  }
+  
+  const { data, error } = await supabase
+    .from("dreams")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id) // Ensure user owns the dream
+    .single();
+
+  if (error) {
+    console.error("Error fetching dream by ID:", error);
+    return undefined;
+  }
+  return data ? fromSupabaseRow(data as DreamTableRow) : undefined;
 }
 
 export async function createDream(values: DreamFormValues) {
@@ -80,26 +91,39 @@ export async function createDream(values: DreamFormValues) {
   }
 
   const { title, date, description, tags, emotions } = validatedFields.data;
-  const newDream: Dream = {
-    id: String(Date.now()), 
-    userId: user.id, 
+  
+  const newDreamData = {
+    user_id: user.id, 
     title,
-    date,
+    date: date.toISOString(), // Convert Date to ISO string for Supabase
     description,
     tags: tags ? tags.split(",").map((tag) => tag.trim()).filter(tag => tag) : [],
     emotions: emotions || [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    // ai_interpretation will be null by default
   };
 
-  dreams.push(newDream); // Replace with Supabase insert
+  const { data: insertedDream, error } = await supabase
+    .from("dreams")
+    .insert(newDreamData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating dream:", error);
+    return { message: "Database error: Failed to create dream." };
+  }
+  
+  if (!insertedDream) {
+    return { message: "Failed to create dream, no data returned." };
+  }
+
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
-  return { message: "Dream created successfully.", dreamId: newDream.id, dream: newDream };
+  return { message: "Dream created successfully.", dreamId: insertedDream.id, dream: fromSupabaseRow(insertedDream as DreamTableRow) };
 }
 
 export async function updateDream(id: string, values: DreamFormValues) {
-   const supabase = createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -115,27 +139,37 @@ export async function updateDream(id: string, values: DreamFormValues) {
   }
 
   const { title, date, description, tags, emotions } = validatedFields.data;
-  const dreamIndex = dreams.findIndex((dream) => dream.id === id && dream.userId === user.id);
-
-  if (dreamIndex === -1) {
-    return { message: "Dream not found or unauthorized." };
-  }
-
-  dreams[dreamIndex] = {
-    ...dreams[dreamIndex],
+  const dreamToUpdate = {
     title,
-    date,
+    date: date.toISOString(),
     description,
     tags: tags ? tags.split(",").map((tag) => tag.trim()).filter(tag => tag) : [],
     emotions: emotions || [],
-    updatedAt: new Date(),
-  }; // Replace with Supabase update
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: updatedDream, error } = await supabase
+    .from("dreams")
+    .update(dreamToUpdate)
+    .eq("id", id)
+    .eq("user_id", user.id) // Ensure user owns the dream
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Error updating dream:", error);
+    return { message: "Database error: Failed to update dream." };
+  }
+
+  if (!updatedDream) {
+     return { message: "Failed to update dream, dream not found or unauthorized." };
+  }
 
   revalidatePath(`/dreams`);
   revalidatePath(`/dreams/${id}`);
   revalidatePath(`/dreams/${id}/edit`);
   revalidatePath("/dashboard");
-  return { message: "Dream updated successfully.", dream: dreams[dreamIndex] };
+  return { message: "Dream updated successfully.", dream: fromSupabaseRow(updatedDream as DreamTableRow) };
 }
 
 export async function deleteDream(id: string) {
@@ -146,10 +180,18 @@ export async function deleteDream(id: string) {
     return { message: "User not authenticated." };
   }
   
-  const initialLength = dreams.length;
-  dreams = dreams.filter((dream) => dream.id !== id || dream.userId !== user.id); // Replace with Supabase delete
+  const { error, count } = await supabase
+    .from("dreams")
+    .delete({ count: 'exact' }) // Get the count of deleted rows
+    .eq("id", id)
+    .eq("user_id", user.id); // Ensure user owns the dream
 
-  if (dreams.length === initialLength) {
+  if (error) {
+    console.error("Error deleting dream:", error);
+    return { message: "Database error: Failed to delete dream." };
+  }
+  
+  if (count === 0) {
      return { message: "Dream not found or unauthorized for deletion." };
   }
 
@@ -159,30 +201,45 @@ export async function deleteDream(id: string) {
 }
 
 export async function interpretDream(dreamId: string): Promise<{ interpretation?: AIInterpretation, message: string, error?: string }> {
-  const dream = await getDreamById(dreamId); // Ensure this checks user ownership if sensitive
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { message: "User not authenticated.", error: "User not authenticated." };
+  }
+
+  const dream = await getDreamById(dreamId); // This already checks user ownership
   if (!dream) {
-    return { message: "Dream not found.", error: "Dream not found." };
+    return { message: "Dream not found or unauthorized.", error: "Dream not found." };
   }
 
   try {
-    const aiResponse: InterpretDreamOutput = await runAIInterpretation({ dreamText: dream.description });
+    const aiResponse: InterpretDreamOutput = await runAIInterpretationFlow({ dreamText: dream.description });
     const interpretation: AIInterpretation = {
       overallMeaning: aiResponse.overallMeaning,
       symbols: aiResponse.symbols,
       emotionalTone: aiResponse.emotionalTone,
     };
 
-    const dreamIndex = dreams.findIndex((d) => d.id === dreamId);
-    if (dreamIndex !== -1) {
-      dreams[dreamIndex].aiInterpretation = interpretation;
-      dreams[dreamIndex].updatedAt = new Date();
+    const { error: updateError } = await supabase
+      .from("dreams")
+      .update({ 
+        ai_interpretation: interpretation,
+        updated_at: new Date().toISOString() 
+      })
+      .eq("id", dreamId)
+      .eq("user_id", user.id); // Extra check, though getDreamById should suffice
+
+    if (updateError) {
+      console.error("Error saving AI interpretation:", updateError);
+      return { message: "Successfully interpreted, but failed to save interpretation.", error: updateError.message };
     }
     
     revalidatePath(`/dreams/${dreamId}`);
-    return { interpretation, message: "Dream interpreted successfully." };
+    return { interpretation, message: "Dream interpreted and saved successfully." };
 
   } catch (error) {
-    console.error("AI interpretation error:", error);
+    console.error("AI interpretation flow error:", error);
     return { message: "Failed to interpret dream.", error: (error as Error).message };
   }
 }
@@ -211,8 +268,7 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
       data: {
         username: data.username,
       },
-      // To redirect user to a specific page after email confirmation:
-      // emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback` // Create this route if needed
+      // emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback` 
     },
   });
 
@@ -220,15 +276,14 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
     return { success: false, message: error.message };
   }
   if (signUpData.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
-    // This can happen if email confirmation is required and the user already exists but is not confirmed.
-    // Supabase might return a user object but indicate it's not a new session.
     return { success: false, message: "User already exists or another issue occurred. If you haven't confirmed your email, please check your inbox." };
   }
   
-  // If email confirmation is enabled (default), user will be sent an email.
-  // Session might be null until email is confirmed.
   let message = "Registration successful! ";
-  if (supabase.auth.signInWithPassword !== undefined && (!signUpData.session || !signUpData.user?.email_confirmed_at)) {
+  // Check if email confirmation is required by your Supabase project settings
+  // Supabase returns a session if email confirmation is NOT required.
+  // If email confirmation IS required, session will be null until confirmed.
+  if (signUpData.session === null && signUpData.user?.email_confirmed_at === null ) {
      message += "Please check your email to confirm your account.";
   } else {
      message += "You are now logged in.";
@@ -244,7 +299,7 @@ export async function logoutUser() {
   if (error) {
     return { success: false, message: `Logout failed: ${error.message}` };
   }
-  revalidatePath('/', 'layout'); // Revalidate all paths to update auth state
+  revalidatePath('/', 'layout'); 
   return { success: true, message: "Logged out successfully." };
 }
 
@@ -257,7 +312,7 @@ export async function getCurrentUser(): Promise<User | null> {
     return {
       id: user.id,
       email: user.email || "",
-      username: userMetadata?.username || user.email?.split('@')[0] || "User", // Fallback username
+      username: userMetadata?.username || user.email?.split('@')[0] || "User", 
       createdAt: new Date(user.created_at),
     };
   }
@@ -274,10 +329,12 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
   const updates: { email?: string; data?: UserMetadata } = {};
   if (data.email && data.email !== currentUser.email) {
-    updates.email = data.email; // Note: Email change might require confirmation
+    updates.email = data.email; 
   }
   if (data.username) {
-    updates.data = { ...currentUser.user_metadata as UserMetadata, username: data.username };
+    // Ensure existing metadata is preserved if any, then update username
+    const currentMetaData = currentUser.user_metadata || {};
+    updates.data = { ...currentMetaData, username: data.username };
   }
 
   if (Object.keys(updates).length === 0) {
@@ -291,6 +348,6 @@ export async function updateUserProfile(data: { username?: string; email?: strin
   }
 
   revalidatePath('/profile');
-  revalidatePath('/dashboard'); // If username is displayed there
+  revalidatePath('/dashboard'); 
   return { success: true, message: "Profile updated successfully." };
 }

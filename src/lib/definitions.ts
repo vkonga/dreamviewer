@@ -19,15 +19,15 @@ export type AIInterpretation = {
 
 export type Dream = {
   id: string;
-  userId: string; // Simulates foreign key to a User
+  user_id: string; // Changed from userId to match Supabase convention
   title: string;
-  date: Date;
+  date: Date; // Will be string from DB, converted to Date in actions
   description: string;
   tags: string[];
   emotions: string[];
-  aiInterpretation?: AIInterpretation;
-  createdAt: Date;
-  updatedAt: Date;
+  ai_interpretation?: AIInterpretation | null; // Changed to match Supabase convention, can be null
+  created_at: Date; // Will be string from DB, converted to Date in actions
+  updated_at: Date; // Will be string from DB, converted to Date in actions
 };
 
 // For react-hook-form
@@ -40,3 +40,17 @@ export type DreamFormValues = {
 };
 
 export const PREDEFINED_EMOTIONS = ["Happy", "Sad", "Anxious", "Excited", "Confused", "Scared", "Peaceful", "Angry", "Surprised", "Awe"];
+
+// Type for rows coming directly from Supabase dreams table
+export type DreamTableRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  date: string; // Timestamptz comes as string
+  description: string;
+  tags: string[] | null;
+  emotions: string[] | null;
+  ai_interpretation?: AIInterpretation | null;
+  created_at: string; // Timestamptz comes as string
+  updated_at: string; // Timestamptz comes as string
+};

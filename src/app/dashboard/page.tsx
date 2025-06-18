@@ -2,7 +2,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDreams, getCurrentUser } from "@/lib/actions"; // Import getCurrentUser
+import { getDreams, getCurrentUser } from "@/lib/actions"; 
 import Link from "next/link";
 import { PlusCircle, ListChecks, Edit3 } from "lucide-react";
 import type { Dream } from "@/lib/definitions";

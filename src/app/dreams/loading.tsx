@@ -1,6 +1,6 @@
 
 import { AppShell } from "@/components/layout/app-shell";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlusCircle } from "lucide-react";
 

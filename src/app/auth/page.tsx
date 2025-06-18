@@ -58,15 +58,22 @@ function AuthForm() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        router.push("/dashboard"); // Redirect if user becomes authenticated
+        // If a user becomes authenticated while on this page (e.g. already logged in, or different tab login)
+        // redirect them away from /auth to the dashboard.
+        // The specific redirection *after clicking the login button* is handled in onLogin.
+        if (router.pathname === '/auth' || router.pathname === '/auth/') { // Check if current page is auth
+             router.push("/dashboard");
+        }
       }
     });
 
-    // Check initial auth state
+    // Check initial auth state: if user lands on /auth but is already logged in, redirect to dashboard.
     const checkInitialSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            router.push("/dashboard");
+            if (router.pathname === '/auth' || router.pathname === '/auth/') {
+                 router.push("/dashboard");
+            }
         }
     };
     checkInitialSession();
@@ -83,8 +90,8 @@ function AuthForm() {
     setIsLoading(false);
     if (result.success) {
       toast({ title: "Login Successful", description: result.message });
-      router.push("/dashboard"); // Supabase session will be handled by middleware/AppShell
-      router.refresh(); // Force re-render of layout to pick up new auth state
+      router.push("/"); // Redirect to home page on successful login
+      router.refresh(); 
     } else {
       toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }
@@ -95,11 +102,8 @@ function AuthForm() {
     const result = await registerUser({ email: data.email, password_DO_NOT_USE: data.password, username: data.username });
     setIsLoading(false);
     if (result.success) {
-      toast({ title: "Registration Attempted", description: result.message }); // Message might include "check email"
+      toast({ title: "Registration Attempted", description: result.message }); 
       resetSignup();
-      // Don't automatically switch to login tab if email confirmation is needed.
-      // Let the user decide or handle redirection based on Supabase flow.
-      // setActiveTab("login"); 
     } else {
       toast({ title: "Registration Failed", description: result.message, variant: "destructive" });
     }

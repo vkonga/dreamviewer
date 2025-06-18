@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AppHeader } from "@/components/layout/header";
-import { Sparkles, BookText, BarChart3, Users, MoonStar } from "lucide-react";
+import { Sparkles, BookText, BarChart3, Users, MoonStar, Film } from "lucide-react"; // Added Film
 import Image from "next/image";
 
 export default function LandingPage() {
@@ -107,11 +107,33 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Upcoming Features Section */}
+        <section className="py-16 md:py-24 bg-background">
+          <div className="container">
+            <h2 className="font-headline text-4xl font-bold text-center mb-12">Upcoming AI Magic</h2>
+            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-center">
+              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md mx-auto" style={{animationDelay: `${4 * 150}ms`}}>
+                <CardHeader>
+                  <Film className="mx-auto h-12 w-12 text-accent mb-4" />
+                  <CardTitle className="font-headline text-2xl">Dream to Video (Coming Soon)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Transform snippets of your dream journal entries into short, evocative video clips. Describe a scene, and let our AI bring it to life based on your AI-acceptable prompts.</p>
+                  <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
+                    <Image src={`https://placehold.co/400x250.png`} alt="Text to Video Feature" layout="fill" objectFit="cover" data-ai-hint="AI video" />
+                  </div>
+                </CardContent>
+              </Card>
+              {/* You can add more upcoming feature cards here by duplicating the Card structure */}
+            </div>
+          </div>
+        </section>
+
         {/* Call to Action Section */}
-        <section className="py-16 md:py-24 bg-background text-center">
+        <section className="py-16 md:py-24 bg-muted text-center">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold mb-6">Ready to Explore Your Inner World?</h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto"> {/* Changed text-muted-foreground for slightly better contrast on bg-muted */}
               Join DreamView today and start your journey of self-discovery through your dreams.
             </p>
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform hover:scale-105">
@@ -121,7 +143,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="py-8 border-t border-border/40 bg-muted">
+      <footer className="py-8 border-t border-border/40 bg-background"> {/* Changed footer to bg-background for consistency */}
         <div className="container text-center text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} DreamView. Crafted with <MoonStar className="inline h-4 w-4 text-primary" /> for dreamers.</p>
         </div>

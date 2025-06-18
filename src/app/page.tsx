@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AppHeader } from "@/components/layout/header";
-import { Sparkles, BookText, BarChart3, Users, MoonStar, Film } from "lucide-react"; // Added Film
+import { Sparkles, BookText, BarChart3, Users, MoonStar, Film } from "lucide-react";
 import Image from "next/image";
 
 export default function LandingPage() {
@@ -17,7 +17,9 @@ export default function LandingPage() {
              {/* Subtle background pattern or image could go here */}
           </div>
           <div className="container relative z-10">
-            <MoonStar className="mx-auto h-24 w-24 text-primary mb-6 animate-pulse" />
+            <Link href="/" aria-label="DreamView Home">
+              <MoonStar className="mx-auto h-24 w-24 text-primary mb-6 animate-pulse cursor-pointer" />
+            </Link>
             <h1 className="font-headline text-5xl md:text-7xl font-bold mb-6 text-balance">
               Unlock the World of Your Dreams
             </h1>
@@ -111,8 +113,8 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Upcoming AI Magic</h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-center">
-              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md mx-auto" style={{animationDelay: `${4 * 150}ms`}}>
+            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center"> {/* Changed justify-center to justify-items-center for better centering of cards */}
+              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${4 * 150}ms`}}>
                 <CardHeader>
                   <Film className="mx-auto h-12 w-12 text-accent mb-4" />
                   <CardTitle className="font-headline text-2xl">Dream to Video (Coming Soon)</CardTitle>
@@ -121,6 +123,18 @@ export default function LandingPage() {
                   <p className="text-muted-foreground">Transform snippets of your dream journal entries into short, evocative video clips. Describe a scene, and let our AI bring it to life based on your AI-acceptable prompts.</p>
                   <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
                     <Image src={`https://placehold.co/400x250.png`} alt="Text to Video Feature" layout="fill" objectFit="cover" data-ai-hint="AI video" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${5 * 150}ms`}}>
+                <CardHeader>
+                  <Users className="mx-auto h-12 w-12 text-accent mb-4" />
+                  <CardTitle className="font-headline text-2xl">AI Family Tree (Coming Soon)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Discover recurring family figures or ancestral connections in your dreams. Let AI help visualize these relationships from your dream journal entries.</p>
+                  <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
+                    <Image src={`https://placehold.co/400x250.png`} alt="AI Family Tree Feature" layout="fill" objectFit="cover" data-ai-hint="family tree" />
                   </div>
                 </CardContent>
               </Card>
@@ -133,7 +147,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-muted text-center">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold mb-6">Ready to Explore Your Inner World?</h2>
-            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto"> {/* Changed text-muted-foreground for slightly better contrast on bg-muted */}
+            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
               Join DreamView today and start your journey of self-discovery through your dreams.
             </p>
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform hover:scale-105">
@@ -143,9 +157,9 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="py-8 border-t border-border/40 bg-background"> {/* Changed footer to bg-background for consistency */}
+      <footer className="py-8 border-t border-border/40 bg-background">
         <div className="container text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} DreamView. Crafted with <MoonStar className="inline h-4 w-4 text-primary" /> for dreamers.</p>
+          <p>&copy; {new Date().getFullYear()} DreamView. Crafted with <Link href="/" aria-label="DreamView Home"><MoonStar className="inline h-4 w-4 text-primary cursor-pointer" /></Link> for dreamers.</p>
         </div>
       </footer>
     </div>

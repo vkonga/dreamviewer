@@ -4,21 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDreams, getCurrentUser } from "@/lib/actions"; 
 import Link from "next/link";
-import { PlusCircle, ListChecks, Edit3, Sun, CalendarDays, Calendar, Layers, TrendingUp, HelpCircle } from "lucide-react";
+import { PlusCircle, ListChecks, Edit3, Sun, CalendarDays, Calendar, Layers } from "lucide-react";
 import type { Dream } from "@/lib/definitions";
 import { format, isToday, isSameWeek, isSameMonth, isSameYear } from 'date-fns';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts"
-import type { ChartConfig } from "@/components/ui/chart"
 import { redirect } from "next/navigation";
+import { InsightsWidget } from "@/components/dashboard/insights-widget";
 
-
-async function DreamFeed() {
-  const dreams = await getDreams(); 
+async function DreamFeed({ dreams }: { dreams: Dream[] }) {
   const recentDreams = dreams.slice(0, 5); 
 
   if (recentDreams.length === 0) {
@@ -68,95 +60,13 @@ async function DreamFeed() {
   );
 }
 
-async function InsightsWidget() {
-  const dreams = await getDreams(); 
-  const emotionCounts: { [key: string]: number } = {};
-  dreams.forEach(dream => {
-    dream.emotions.forEach(emotion => {
-      emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
-    });
-  });
-
-  const chartData = Object.entries(emotionCounts)
-    .map(([name, total]) => ({ name, total }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 5);
-
-  const chartConfig = {} as ChartConfig
-  chartData.forEach((item, index) => {
-    chartConfig[item.name] = {
-      label: item.name,
-      color: `hsl(var(--chart-${(index % 5) + 1}))`,
-    }
-  });
-
-  if (dreams.length === 0 || chartData.length === 0) {
-    return (
-      <Card className="bg-card/80 shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline">Dream Insights</CardTitle>
-          <CardDescription>Common emotions in your dreams.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Log some dreams to see insights about your common dream emotions.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-
-  return (
-    <Card className="bg-card/80 shadow-lg">
-      <CardHeader>
-        <CardTitle className="font-headline">Dream Insights</CardTitle>
-        <CardDescription>Common emotions in your dreams.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {chartData.length > 0 ? (
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-video">
-            <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 30 }}>
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-              <XAxis type="number" hide />
-              <YAxis
-                dataKey="name"
-                type="category"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                width={80}
-              />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey="total" radius={5} barSize={30}>
-                {chartData.map((entry, index) => (
-                    <rect key={`cell-${index}`} fill={chartConfig[entry.name]?.color} />
-                ))}
-                 <LabelList
-                  dataKey="total"
-                  position="right"
-                  offset={8}
-                  className="fill-foreground"
-                  fontSize={12}
-                />
-              </Bar>
-            </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        ) : (
-          <p className="text-muted-foreground">Not enough data for insights. Keep logging your dreams!</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 async function DreamFrequencyWidget() {
+  // This widget can fetch its own data as it's a server component.
   const dreams = await getDreams();
   const now = new Date();
 
   const countToday = dreams.filter(dream => isToday(new Date(dream.date))).length;
-  // For week, month, year, ensure dream.date is a Date object for date-fns functions.
-  // getDreams already converts to Date objects, so this should be fine.
   const countThisWeek = dreams.filter(dream => isSameWeek(new Date(dream.date), now, { weekStartsOn: 1 })).length; // Week starts on Monday
   const countThisMonth = dreams.filter(dream => isSameMonth(new Date(dream.date), now)).length;
   const countThisYear = dreams.filter(dream => isSameYear(new Date(dream.date), now)).length;
@@ -208,11 +118,11 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    // This should ideally be handled by middleware, but as a fallback
     redirect('/auth');
   }
   
   const username = user.username || "Dreamer";
+  const dreams = await getDreams(); // Fetch dreams once for the page
 
   return (
     <AppShell>
@@ -230,8 +140,8 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
-          <DreamFeed />
-          <InsightsWidget />
+          <DreamFeed dreams={dreams} /> {/* Pass dreams data */}
+          <InsightsWidget dreams={dreams} /> {/* Pass dreams data */}
         </div>
 
         <DreamFrequencyWidget />
@@ -274,4 +184,3 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
-

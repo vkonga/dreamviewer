@@ -9,9 +9,28 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Check if Supabase environment variables are defined and not empty
+  const isValidSupabaseConfig = 
+    supabaseUrl && supabaseUrl.trim() !== "" &&
+    supabaseAnonKey && supabaseAnonKey.trim() !== "";
+
+  if (!isValidSupabaseConfig) {
+    console.error(
+      "CRITICAL: Supabase URL or Anon Key is missing or empty in middleware. " +
+      "Authentication and Supabase-dependent features will not function correctly. " +
+      "Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env.local file and the server is restarted."
+    );
+    // Allow the request to proceed. The layout.tsx should catch this for page renders and show an error UI.
+    // For API routes or other non-UI paths, this might mean they operate without Supabase context.
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl, // Use the validated and non-null supabaseUrl
+    supabaseAnonKey, // Use the validated and non-null supabaseAnonKey
     {
       cookies: {
         get(name: string) {

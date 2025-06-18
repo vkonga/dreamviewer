@@ -47,9 +47,8 @@ export function AppShell({ children }: AppShellProps) {
         router.push('/auth');
       } else if (event === 'SIGNED_IN') {
         // No automatic redirect here to avoid loops, let middleware or page handle it
-        // router.push('/dashboard'); // This could cause issues if already on dashboard
       }
-      router.refresh(); // Ensure layout re-renders with new auth state
+      router.refresh(); 
     });
 
     return () => {
@@ -66,11 +65,7 @@ export function AppShell({ children }: AppShellProps) {
     );
   }
 
-  // This check is now mostly handled by middleware and the useEffect above.
-  // However, it's a final client-side check before rendering children.
   if (!user && !loadingAuth) { 
-    // router.push('/auth') should have already triggered, but as a fallback.
-    // Returning null or a loading state here prevents rendering children if user is null.
     return (
          <div className="flex h-screen w-screen items-center justify-center bg-background">
             <Loader2 className="h-8 w-8 animate-spin text-primary"/>
@@ -88,12 +83,8 @@ export function AppShell({ children }: AppShellProps) {
       <SidebarInset className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur md:px-6">
           <div className="md:hidden">
-            <SidebarTrigger asChild>
-              <Button variant="outline" size="icon">
-                <PanelLeft />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SidebarTrigger>
+            {/* Corrected usage of SidebarTrigger: Pass props directly, remove asChild and Button child */}
+            <SidebarTrigger variant="outline" size="icon" />
           </div>
           <div className="flex-1">
             {/* Breadcrumbs or page titles */}
@@ -110,3 +101,4 @@ export function AppShell({ children }: AppShellProps) {
     </SidebarProvider>
   );
 }
+

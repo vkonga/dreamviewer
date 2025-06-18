@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDreams, getCurrentUser } from "@/lib/actions"; 
 import Link from "next/link";
-import { PlusCircle, ListChecks, Edit3 } from "lucide-react";
+import { PlusCircle, ListChecks, Edit3, Sun, CalendarDays, Calendar, Layers, TrendingUp, HelpCircle } from "lucide-react";
 import type { Dream } from "@/lib/definitions";
-import { format } from 'date-fns';
+import { format, isToday, isSameWeek, isSameMonth, isSameYear } from 'date-fns';
 import {
   ChartContainer,
   ChartTooltip,
@@ -90,6 +90,21 @@ async function InsightsWidget() {
     }
   });
 
+  if (dreams.length === 0 || chartData.length === 0) {
+    return (
+      <Card className="bg-card/80 shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline">Dream Insights</CardTitle>
+          <CardDescription>Common emotions in your dreams.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Log some dreams to see insights about your common dream emotions.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+
   return (
     <Card className="bg-card/80 shadow-lg">
       <CardHeader>
@@ -135,6 +150,59 @@ async function InsightsWidget() {
   );
 }
 
+async function DreamFrequencyWidget() {
+  const dreams = await getDreams();
+  const now = new Date();
+
+  const countToday = dreams.filter(dream => isToday(new Date(dream.date))).length;
+  // For week, month, year, ensure dream.date is a Date object for date-fns functions.
+  // getDreams already converts to Date objects, so this should be fine.
+  const countThisWeek = dreams.filter(dream => isSameWeek(new Date(dream.date), now, { weekStartsOn: 1 })).length; // Week starts on Monday
+  const countThisMonth = dreams.filter(dream => isSameMonth(new Date(dream.date), now)).length;
+  const countThisYear = dreams.filter(dream => isSameYear(new Date(dream.date), now)).length;
+
+  const stats = [
+    { label: "Today", count: countToday, icon: Sun, hint: "Dreams logged today" },
+    { label: "This Week", count: countThisWeek, icon: CalendarDays, hint: "Dreams logged this week (Mon-Sun)" },
+    { label: "This Month", count: countThisMonth, icon: Calendar, hint: "Dreams logged this calendar month" },
+    { label: "This Year", count: countThisYear, icon: Layers, hint: "Dreams logged this calendar year" },
+  ];
+
+  if (dreams.length === 0) {
+    return (
+      <Card className="bg-card/80 shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline">Dream Frequency</CardTitle>
+          <CardDescription>How often you're recording your dreams.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Log some dreams to see your dream frequency statistics.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-card/80 shadow-lg">
+      <CardHeader>
+        <CardTitle className="font-headline">Dream Frequency</CardTitle>
+        <CardDescription>How often you're recording your dreams.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg shadow-md space-y-2 text-center h-full">
+              <stat.icon className="w-10 h-10 text-accent mb-2" />
+              <p className="text-3xl font-bold text-primary">{stat.count}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -165,6 +233,8 @@ export default async function DashboardPage() {
           <DreamFeed />
           <InsightsWidget />
         </div>
+
+        <DreamFrequencyWidget />
 
         <Card className="bg-card/80 shadow-lg">
           <CardHeader>
@@ -204,3 +274,4 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
+

@@ -7,32 +7,38 @@ import Link from "next/link";
 import { PlusCircle, Search } from "lucide-react";
 import type { Dream } from "@/lib/definitions";
 import { format } from 'date-fns';
-import { Input } from "@/components/ui/input"; // For potential search/filter later
+import { Input } from "@/components/ui/input"; 
 import { Separator } from "@/components/ui/separator";
 
 function DreamListItem({ dream }: { dream: Dream }) {
   return (
-    <Card className="bg-card/80 shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader>
-        <Link href={`/dreams/${dream.id}`}>
-          <CardTitle className="font-headline text-2xl text-primary hover:underline">{dream.title}</CardTitle>
+    <Card className="flex flex-col h-full bg-card/90 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/40 border-2 border-transparent rounded-xl overflow-hidden transform hover:-translate-y-1.5">
+      <CardHeader className="pb-3 pt-5 px-5">
+        <Link href={`/dreams/${dream.id}`} className="block group">
+          <CardTitle className="font-headline text-xl font-semibold text-primary group-hover:text-primary/90 transition-colors">
+            {dream.title}
+          </CardTitle>
         </Link>
-        <CardDescription>{format(new Date(dream.date), "PPP")}</CardDescription>
+        <CardDescription className="text-xs text-muted-foreground pt-1">
+          {format(new Date(dream.date), "PPP")}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-foreground/80 line-clamp-3">{dream.description}</p>
-        {dream.tags.length > 0 && (
-          <div className="mt-2">
-            {dream.tags.slice(0,3).map(tag => (
-              <span key={tag} className="text-xs bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full mr-1 mb-1 inline-block">{tag}</span>
-            ))}
-            {dream.tags.length > 3 && <span className="text-xs text-muted-foreground">...</span>}
-          </div>
-        )}
+      <CardContent className="flex-grow px-5 pb-4 space-y-2">
+        <p className="text-sm text-foreground/85 line-clamp-[7] leading-relaxed"> 
+          {dream.description}
+        </p>
       </CardContent>
-      <CardFooter>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/dreams/${dream.id}`}>Read More & Analyze</Link>
+      <CardFooter className="mt-auto pt-3 pb-5 px-5 border-t border-border/20 flex items-center justify-between gap-x-3">
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {dream.tags.slice(0, 2).map(tag => (
+            <span key={tag} className="text-xs bg-accent/10 text-accent-foreground px-2 py-1 rounded-full">
+              {tag}
+            </span>
+          ))}
+          {dream.tags.length > 2 && <span className="text-xs text-muted-foreground self-center">+{dream.tags.length - 2} more</span>}
+        </div>
+        <Button variant="outline" size="sm" asChild className="shrink-0 hover:bg-accent/20 hover:border-accent/50">
+          <Link href={`/dreams/${dream.id}`}>View Details</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -57,16 +63,10 @@ export default async function DreamsListPage() {
           </Button>
         </div>
         
-        {/* Search/Filter Placeholder - Not functional in this iteration */}
-        {/* <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input placeholder="Search dreams by title or tag..." className="pl-10" />
-        </div> */}
-
         <Separator />
 
         {dreams.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch"> {/* Added items-stretch for equal height cards in a row */}
             {dreams.map((dream) => (
               <DreamListItem key={dream.id} dream={dream} />
             ))}

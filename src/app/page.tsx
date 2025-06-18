@@ -25,7 +25,7 @@ export default function LandingPage() {
               DreamView helps you record, understand, and explore the fascinating landscape of your subconscious.
             </p>
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform hover:scale-105">
-              <Link href="/auth?mode=signup">Start Your Dream Journal</Link>
+              <Link href="/dreams">Start Your Dream Journal</Link>
             </Button>
           </div>
         </section>

@@ -36,7 +36,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Why DreamView?</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 items-stretch">
               {[
                 {
                   icon: BookText,
@@ -57,13 +57,13 @@ export default function LandingPage() {
                   dataAiHint: "data charts"
                 },
               ].map((feature, index) => (
-                <Card key={index} className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up" style={{animationDelay: `${index * 150}ms`}}>
+                <Card key={index} className="flex flex-col text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up" style={{animationDelay: `${index * 150}ms`}}>
                   <CardHeader>
                     <feature.icon className="mx-auto h-12 w-12 text-accent mb-4" />
                     <CardTitle className="font-headline text-2xl">{feature.title}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                  <CardContent className="flex-grow flex flex-col">
+                    <p className="text-muted-foreground flex-grow">{feature.description}</p>
                     <div className="mt-4 h-40 w-full relative overflow-hidden rounded-md">
                        <Image src={`https://placehold.co/400x250.png`} alt={feature.title} layout="fill" objectFit="cover" data-ai-hint={feature.dataAiHint} />
                     </div>
@@ -78,7 +78,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-muted">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Loved by Dreamers</h2>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 items-stretch">
               {[
                 {
                   quote: "DreamView has transformed how I interact with my dreams. The AI insights are mind-blowing!",
@@ -93,12 +93,12 @@ export default function LandingPage() {
                   dataAiHint: "woman thinking"
                 },
               ].map((testimonial, index) => (
-                 <Card key={index} className="bg-card shadow-lg animate-slide-in-up" style={{animationDelay: `${(index + 3) * 150}ms`}}>
-                  <CardContent className="pt-6">
+                 <Card key={index} className="flex flex-col bg-card shadow-lg animate-slide-in-up" style={{animationDelay: `${(index + 3) * 150}ms`}}>
+                  <CardContent className="pt-6 flex-grow">
                     <div className="flex items-start space-x-4">
                       <Image src={testimonial.avatar} alt={testimonial.author} width={60} height={60} className="rounded-full" data-ai-hint={testimonial.dataAiHint} />
                       <div>
-                        <blockquote className="text-lg italic text-foreground mb-2">"{testimonial.quote}"</blockquote>
+                        <blockquote className="text-lg italic text-foreground mb-2 text-balance">"{testimonial.quote}"</blockquote>
                         <p className="font-semibold text-accent">- {testimonial.author}</p>
                       </div>
                     </div>
@@ -113,14 +113,14 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Upcoming AI Magic</h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center">
-              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${4 * 150}ms`}}>
+            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center items-stretch">
+              <Card className="flex flex-col text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${4 * 150}ms`}}>
                 <CardHeader>
                   <Film className="mx-auto h-12 w-12 text-accent mb-4" />
                   <CardTitle className="font-headline text-2xl">Dream to Video (Coming Soon)</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Transform snippets of your dream journal entries into short, evocative video clips. Describe a scene, and let our AI bring it to life based on your AI-acceptable prompts.</p>
+                <CardContent className="flex-grow flex flex-col">
+                  <p className="text-muted-foreground flex-grow text-balance">Transform snippets of your dream journal entries into short, evocative video clips. Describe a scene, and let our AI bring it to life based on your AI-acceptable prompts.</p>
                   <div className="mt-4 h-48 w-full overflow-hidden rounded-md">
                     <iframe
                       className="w-full h-full"
@@ -133,13 +133,13 @@ export default function LandingPage() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${5 * 150}ms`}}>
+              <Card className="flex flex-col text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${5 * 150}ms`}}>
                 <CardHeader>
                   <Users className="mx-auto h-12 w-12 text-accent mb-4" />
                   <CardTitle className="font-headline text-2xl">AI Family Tree (Coming Soon)</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Discover recurring family figures or ancestral connections in your dreams. Let AI help visualize these relationships from your dream journal entries.</p>
+                <CardContent className="flex-grow flex flex-col">
+                  <p className="text-muted-foreground flex-grow text-balance">Discover recurring family figures or ancestral connections in your dreams. Let AI help visualize these relationships from your dream journal entries.</p>
                   <div className="mt-4 h-48 w-full relative overflow-hidden rounded-md">
                     <Image src={`https://placehold.co/400x250.png`} alt="AI Family Tree Feature" layout="fill" objectFit="cover" data-ai-hint="family tree" />
                   </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-24 bg-muted text-center">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold mb-6">Ready to Explore Your Inner World?</h2>
-            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto text-balance">
               Join DreamView today and start your journey of self-discovery through your dreams.
             </p>
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform hover:scale-105">

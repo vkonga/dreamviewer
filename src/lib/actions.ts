@@ -15,7 +15,7 @@ function fromSupabaseRow(row: DreamTableRow): Dream {
     date: new Date(row.date),
     tags: row.tags || [],
     emotions: row.emotions || [],
-    ai_interpretation: row.ai_interpretation || undefined,
+    ai_interpretation: row.ai_interpretation || undefined, // Ensure it maps to aiInterpretation
     created_at: new Date(row.created_at),
     updated_at: new Date(row.updated_at),
   };
@@ -33,11 +33,18 @@ const DreamFormSchema = z.object({
 // Dream actions using Supabase
 export async function getDreams(): Promise<Dream[]> {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (!user) {
-    return []; // Or throw an error, depending on how you want to handle unauthenticated access
+  if (userError) {
+    console.error("getDreams - Error fetching user:", userError.message, JSON.stringify(userError, null, 2));
+    return [];
   }
+  if (!user) {
+    console.warn("getDreams - No user session found when trying to fetch dreams.");
+    return [];
+  }
+
+  console.log(`getDreams - Attempting to fetch dreams for user: ${user.id} (email: ${user.email})`);
 
   const { data, error } = await supabase
     .from("dreams")
@@ -46,20 +53,29 @@ export async function getDreams(): Promise<Dream[]> {
     .order("date", { ascending: false });
 
   if (error) {
-    console.error("Error fetching dreams:", error);
+    console.error("getDreams - Error fetching dreams from Supabase:", JSON.stringify(error, null, 2));
+    // Log specific parts if available for easier reading
+    console.error(`Supabase error details: message: ${error.message}, code: ${error.code}, details: ${error.details}, hint: ${error.hint}`);
     return [];
   }
+  console.log(`getDreams - Successfully fetched ${data?.length || 0} dreams for user: ${user.id}`);
   return data ? data.map(fromSupabaseRow) : [];
 }
 
 export async function getDreamById(id: string): Promise<Dream | undefined> {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+    console.error(`getDreamById(${id}) - Error fetching user:`, userError.message, JSON.stringify(userError, null, 2));
+    return undefined;
+  }
   if (!user) {
+    console.warn(`getDreamById(${id}) - No user session found.`);
     return undefined; 
   }
   
+  console.log(`getDreamById(${id}) - Attempting to fetch for user: ${user.id}`);
   const { data, error } = await supabase
     .from("dreams")
     .select("*")
@@ -68,17 +84,24 @@ export async function getDreamById(id: string): Promise<Dream | undefined> {
     .single();
 
   if (error) {
-    console.error("Error fetching dream by ID:", error);
+    console.error(`getDreamById(${id}) - Error fetching dream from Supabase:`, JSON.stringify(error, null, 2));
+    console.error(`Supabase error details: message: ${error.message}, code: ${error.code}, details: ${error.details}, hint: ${error.hint}`);
     return undefined;
   }
+  console.log(`getDreamById(${id}) - Successfully fetched dream.`);
   return data ? fromSupabaseRow(data as DreamTableRow) : undefined;
 }
 
 export async function createDream(values: DreamFormValues) {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } , error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+    console.error("createDream - Error fetching user:", userError.message);
+    return { message: "Authentication error.", errors: { auth: "User not authenticated." } };
+  }
   if (!user) {
+    console.warn("createDream - No user session found.");
     return { message: "User not authenticated.", errors: { auth: "User not authenticated." } };
   }
 
@@ -95,13 +118,13 @@ export async function createDream(values: DreamFormValues) {
   const newDreamData = {
     user_id: user.id, 
     title,
-    date: date.toISOString(), // Convert Date to ISO string for Supabase
+    date: date.toISOString(), 
     description,
     tags: tags ? tags.split(",").map((tag) => tag.trim()).filter(tag => tag) : [],
     emotions: emotions || [],
-    // ai_interpretation will be null by default
   };
 
+  console.log(`createDream - Attempting to insert dream for user: ${user.id}`, newDreamData);
   const { data: insertedDream, error } = await supabase
     .from("dreams")
     .insert(newDreamData)
@@ -109,14 +132,16 @@ export async function createDream(values: DreamFormValues) {
     .single();
 
   if (error) {
-    console.error("Error creating dream:", error);
+    console.error("createDream - Error inserting dream:", JSON.stringify(error, null, 2));
     return { message: "Database error: Failed to create dream." };
   }
   
   if (!insertedDream) {
+    console.error("createDream - Failed to create dream, no data returned from insert.");
     return { message: "Failed to create dream, no data returned." };
   }
 
+  console.log(`createDream - Dream created successfully with id: ${insertedDream.id}`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
   return { message: "Dream created successfully.", dreamId: insertedDream.id, dream: fromSupabaseRow(insertedDream as DreamTableRow) };
@@ -124,9 +149,14 @@ export async function createDream(values: DreamFormValues) {
 
 export async function updateDream(id: string, values: DreamFormValues) {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+     console.error(`updateDream(${id}) - Error fetching user:`, userError.message);
+    return { message: "Authentication error." };
+  }
   if (!user) {
+    console.warn(`updateDream(${id}) - No user session found.`);
     return { message: "User not authenticated." };
   }
 
@@ -148,23 +178,26 @@ export async function updateDream(id: string, values: DreamFormValues) {
     updated_at: new Date().toISOString(),
   };
 
+  console.log(`updateDream(${id}) - Attempting to update for user: ${user.id}`, dreamToUpdate);
   const { data: updatedDream, error } = await supabase
     .from("dreams")
     .update(dreamToUpdate)
     .eq("id", id)
-    .eq("user_id", user.id) // Ensure user owns the dream
+    .eq("user_id", user.id) 
     .select()
     .single();
   
   if (error) {
-    console.error("Error updating dream:", error);
+    console.error(`updateDream(${id}) - Error updating dream:`, JSON.stringify(error, null, 2));
     return { message: "Database error: Failed to update dream." };
   }
 
   if (!updatedDream) {
+     console.error(`updateDream(${id}) - Failed to update dream, dream not found or unauthorized.`);
      return { message: "Failed to update dream, dream not found or unauthorized." };
   }
 
+  console.log(`updateDream(${id}) - Dream updated successfully.`);
   revalidatePath(`/dreams`);
   revalidatePath(`/dreams/${id}`);
   revalidatePath(`/dreams/${id}/edit`);
@@ -174,27 +207,35 @@ export async function updateDream(id: string, values: DreamFormValues) {
 
 export async function deleteDream(id: string) {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+    console.error(`deleteDream(${id}) - Error fetching user:`, userError.message);
+    return { message: "Authentication error." };
+  }
   if (!user) {
+    console.warn(`deleteDream(${id}) - No user session found.`);
     return { message: "User not authenticated." };
   }
   
+  console.log(`deleteDream(${id}) - Attempting to delete for user: ${user.id}`);
   const { error, count } = await supabase
     .from("dreams")
-    .delete({ count: 'exact' }) // Get the count of deleted rows
+    .delete({ count: 'exact' }) 
     .eq("id", id)
-    .eq("user_id", user.id); // Ensure user owns the dream
+    .eq("user_id", user.id); 
 
   if (error) {
-    console.error("Error deleting dream:", error);
+    console.error(`deleteDream(${id}) - Error deleting dream:`, JSON.stringify(error, null, 2));
     return { message: "Database error: Failed to delete dream." };
   }
   
   if (count === 0) {
+     console.warn(`deleteDream(${id}) - Dream not found or unauthorized for deletion for user: ${user.id}.`);
      return { message: "Dream not found or unauthorized for deletion." };
   }
 
+  console.log(`deleteDream(${id}) - Dream deleted successfully.`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
   return { message: "Dream deleted successfully." };
@@ -202,18 +243,24 @@ export async function deleteDream(id: string) {
 
 export async function interpretDream(dreamId: string): Promise<{ interpretation?: AIInterpretation, message: string, error?: string }> {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+    console.error(`interpretDream(${dreamId}) - Error fetching user:`, userError.message);
+    return { message: "User not authenticated.", error: "User not authenticated." };
+  }
   if (!user) {
+    console.warn(`interpretDream(${dreamId}) - No user session found.`);
     return { message: "User not authenticated.", error: "User not authenticated." };
   }
 
-  const dream = await getDreamById(dreamId); // This already checks user ownership
+  const dream = await getDreamById(dreamId); 
   if (!dream) {
     return { message: "Dream not found or unauthorized.", error: "Dream not found." };
   }
 
   try {
+    console.log(`interpretDream(${dreamId}) - Requesting AI interpretation for dream description: "${dream.description.substring(0, 50)}..."`);
     const aiResponse: InterpretDreamOutput = await runAIInterpretationFlow({ dreamText: dream.description });
     const interpretation: AIInterpretation = {
       overallMeaning: aiResponse.overallMeaning,
@@ -221,6 +268,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
       emotionalTone: aiResponse.emotionalTone,
     };
 
+    console.log(`interpretDream(${dreamId}) - AI interpretation received, attempting to save.`);
     const { error: updateError } = await supabase
       .from("dreams")
       .update({ 
@@ -228,18 +276,19 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
         updated_at: new Date().toISOString() 
       })
       .eq("id", dreamId)
-      .eq("user_id", user.id); // Extra check, though getDreamById should suffice
+      .eq("user_id", user.id);
 
     if (updateError) {
-      console.error("Error saving AI interpretation:", updateError);
-      return { message: "Successfully interpreted, but failed to save interpretation.", error: updateError.message };
+      console.error(`interpretDream(${dreamId}) - Error saving AI interpretation:`, JSON.stringify(updateError, null, 2));
+      return { interpretation, message: "Successfully interpreted, but failed to save interpretation.", error: updateError.message };
     }
     
+    console.log(`interpretDream(${dreamId}) - Dream interpreted and saved successfully.`);
     revalidatePath(`/dreams/${dreamId}`);
     return { interpretation, message: "Dream interpreted and saved successfully." };
 
   } catch (error) {
-    console.error("AI interpretation flow error:", error);
+    console.error(`interpretDream(${dreamId}) - AI interpretation flow error:`, error);
     return { message: "Failed to interpret dream.", error: (error as Error).message };
   }
 }
@@ -253,9 +302,13 @@ export async function loginUser(data: { email: string; password_DO_NOT_USE: stri
   });
 
   if (error) {
+    console.error("loginUser - Error:", error.message);
     return { success: false, message: error.message };
   }
-  revalidatePath('/', 'layout'); // Revalidate all paths to update auth state
+  revalidatePath('/', 'layout'); 
+  revalidatePath('/dashboard'); // Explicitly revalidate dashboard
+  revalidatePath('/dreams');   // Explicitly revalidate dreams
+  console.log(`loginUser - User ${data.email} logged in successfully.`);
   return { success: true, message: "Logged in successfully!" };
 }
 
@@ -268,26 +321,26 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
       data: {
         username: data.username,
       },
-      // emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback` 
     },
   });
 
   if (error) {
+    console.error("registerUser - Error:", error.message);
     return { success: false, message: error.message };
   }
   if (signUpData.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
+    console.warn("registerUser - User already exists or an issue occurred (no new identity).");
     return { success: false, message: "User already exists or another issue occurred. If you haven't confirmed your email, please check your inbox." };
   }
   
   let message = "Registration successful! ";
-  // Check if email confirmation is required by your Supabase project settings
-  // Supabase returns a session if email confirmation is NOT required.
-  // If email confirmation IS required, session will be null until confirmed.
   if (signUpData.session === null && signUpData.user?.email_confirmed_at === null ) {
      message += "Please check your email to confirm your account.";
+     console.log(`registerUser - User ${data.email} registered, email confirmation pending.`);
   } else {
      message += "You are now logged in.";
      revalidatePath('/', 'layout');
+     console.log(`registerUser - User ${data.email} registered and logged in.`);
   }
 
   return { success: true, message };
@@ -297,18 +350,25 @@ export async function logoutUser() {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.auth.signOut();
   if (error) {
+    console.error("logoutUser - Error:", error.message);
     return { success: false, message: `Logout failed: ${error.message}` };
   }
   revalidatePath('/', 'layout'); 
+  console.log("logoutUser - User logged out successfully.");
   return { success: true, message: "Logged out successfully." };
 }
 
 export async function getCurrentUser(): Promise<User | null> {
   const supabase = createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } , error } = await supabase.auth.getUser();
 
+  if (error) {
+    console.error("getCurrentUser - Error fetching user:", error.message);
+    return null;
+  }
   if (user) {
     const userMetadata = user.user_metadata as UserMetadata;
+    // console.log(`getCurrentUser - User found: ${user.id} (email: ${user.email})`);
     return {
       id: user.id,
       email: user.email || "",
@@ -316,14 +376,20 @@ export async function getCurrentUser(): Promise<User | null> {
       createdAt: new Date(user.created_at),
     };
   }
+  // console.log("getCurrentUser - No user session found.");
   return null;
 }
 
 export async function updateUserProfile(data: { username?: string; email?: string }) {
   const supabase = createSupabaseServerClient();
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
 
+  if (userError) {
+    console.error("updateUserProfile - Error fetching current user:", userError.message);
+    return { success: false, message: "Authentication error." };
+  }
   if (!currentUser) {
+    console.warn("updateUserProfile - No current user session found.");
     return { success: false, message: "User not authenticated." };
   }
 
@@ -332,22 +398,28 @@ export async function updateUserProfile(data: { username?: string; email?: strin
     updates.email = data.email; 
   }
   if (data.username) {
-    // Ensure existing metadata is preserved if any, then update username
     const currentMetaData = currentUser.user_metadata || {};
     updates.data = { ...currentMetaData, username: data.username };
   }
 
   if (Object.keys(updates).length === 0) {
+    console.log("updateUserProfile - No changes to update.");
     return { success: true, message: "No changes to update." };
   }
   
+  console.log(`updateUserProfile - Attempting to update profile for user ${currentUser.id}:`, updates);
   const { error } = await supabase.auth.updateUser(updates);
 
   if (error) {
+    console.error("updateUserProfile - Profile update failed:", error.message);
     return { success: false, message: `Profile update failed: ${error.message}` };
   }
 
+  console.log(`updateUserProfile - Profile updated successfully for user ${currentUser.id}.`);
   revalidatePath('/profile');
   revalidatePath('/dashboard'); 
   return { success: true, message: "Profile updated successfully." };
 }
+
+
+    

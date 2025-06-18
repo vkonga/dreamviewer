@@ -18,8 +18,6 @@ import { redirect } from "next/navigation";
 
 
 async function DreamFeed() {
-  // In a real app, getDreams should be user-specific.
-  // This mock version doesn't filter by user yet.
   const dreams = await getDreams(); 
   const recentDreams = dreams.slice(0, 5); 
 
@@ -71,7 +69,7 @@ async function DreamFeed() {
 }
 
 async function InsightsWidget() {
-  const dreams = await getDreams(); // This should also be user-specific
+  const dreams = await getDreams(); 
   const emotionCounts: { [key: string]: number } = {};
   dreams.forEach(dream => {
     dream.emotions.forEach(emotion => {

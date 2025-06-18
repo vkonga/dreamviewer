@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { createDream, updateDream } from "@/lib/actions";
+import { createDream, updateDream, deleteDream } from "@/lib/actions";
 import type { Dream, DreamFormValues, PREDEFINED_EMOTIONS as PredefinedEmotionsType } from "@/lib/definitions";
 import { PREDEFINED_EMOTIONS } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,18 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Save, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useState, useTransition } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const DreamFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -39,6 +50,7 @@ export function DreamEditorForm({ dream, onFormSubmit }: DreamEditorFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   const defaultValues: Partial<DreamFormValues> = dream
     ? {
@@ -94,6 +106,20 @@ export function DreamEditorForm({ dream, onFormSubmit }: DreamEditorFormProps) {
       setIsSubmitting(false);
     }
   };
+
+  const handleDelete = async () => {
+    if (!dream) return;
+    startDeleteTransition(async () => {
+      const result = await deleteDream(dream.id);
+      if (result.message.includes("successfully")) {
+        toast({ title: "Dream Deleted", description: result.message });
+        router.push("/dreams"); // Redirect to dreams list after deletion
+      } else {
+        toast({ title: "Deletion Failed", description: result.message, variant: "destructive" });
+      }
+    });
+  };
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto bg-card/90 shadow-xl">
@@ -183,13 +209,34 @@ export function DreamEditorForm({ dream, onFormSubmit }: DreamEditorFormProps) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end gap-3">
-          {dream && (
-            <Button type="button" variant="destructive" onClick={() => { /* Implement delete logic */ }} disabled={isSubmitting}>
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting}>
+        <CardFooter className="flex justify-between items-center">
+          <div>
+            {dream && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="destructive" disabled={isSubmitting || isDeleting}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete this dream entry.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                      {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+          <Button type="submit" disabled={isSubmitting || isDeleting}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" /> }
             {dream ? "Save Changes" : "Save Dream"}
           </Button>

@@ -24,7 +24,7 @@ function MissingEnvVarsError() {
           <h1 className="text-3xl font-bold text-destructive mb-4">Configuration Error</h1>
           <p className="text-lg mb-2">The application is missing essential Supabase configuration.</p>
           <p className="text-muted-foreground mb-6 max-w-md">
-            Please ensure you have a <code>.env.local</code> file in the root of your project with the following variables set:
+            Please ensure you have a <code>.env.local</code> file in the root of your project with the following variables set (replace with your actual Supabase project values):
           </p>
           <div className="bg-muted p-4 rounded-md text-left text-sm inline-block mb-6">
             <pre><code>
@@ -34,6 +34,7 @@ function MissingEnvVarsError() {
           </div>
           <p className="text-muted-foreground">
             You can find these values in your Supabase project dashboard under Project Settings &gt; API.
+            After creating or updating the <code>.env.local</code> file, please restart your Next.js development server.
           </p>
           <a
             href="https://supabase.com/dashboard"
@@ -57,7 +58,12 @@ export default function RootLayout({
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  // More robust check: ensure variables are present and not empty/whitespace
+  const isValidSupabaseConfig = 
+    supabaseUrl && supabaseUrl.trim() !== "" &&
+    supabaseAnonKey && supabaseAnonKey.trim() !== "";
+
+  if (!isValidSupabaseConfig) {
     return <MissingEnvVarsError />;
   }
 

@@ -1,7 +1,7 @@
 
 "use client"; // For using hooks like useState, useEffect, and client-side actions.
 
-import { useEffect, useState, useTransition } from "react";
+import { use, useEffect, useState, useTransition } from "react"; // Import use
 import { AppShell } from "@/components/layout/app-shell";
 import { getDreamById, interpretDream, deleteDream } from "@/lib/actions";
 import type { Dream, AIInterpretation } from "@/lib/definitions";
@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 
 
 export default function DreamViewPage({ params }: { params: { id: string } }) {
+  const resolvedParams = use(params); // Unwrap params
   const [dream, setDream] = useState<Dream | null>(null);
   const [isLoadingDream, setIsLoadingDream] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -39,7 +40,7 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     async function fetchDream() {
       setIsLoadingDream(true);
-      const fetchedDream = await getDreamById(params.id);
+      const fetchedDream = await getDreamById(resolvedParams.id); // Use resolvedParams.id
       if (fetchedDream) {
         setDream(fetchedDream);
       } else {
@@ -48,12 +49,12 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
       setIsLoadingDream(false);
     }
     fetchDream();
-  }, [params.id]);
+  }, [resolvedParams.id]); // Use resolvedParams.id in dependency array
 
   const handleAnalyzeDream = async () => {
     if (!dream) return;
     setIsAnalyzing(true);
-    const result = await interpretDream(dream.id);
+    const result = await interpretDream(dream.id); // dream.id is fine here
     if (result.interpretation) {
       setDream((prevDream) => prevDream ? { ...prevDream, aiInterpretation: result.interpretation } : null);
       toast({ title: "Analysis Complete", description: result.message });
@@ -66,7 +67,7 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   const handleDeleteDream = async () => {
     if (!dream) return;
     startDeleteTransition(async () => {
-      const result = await deleteDream(dream.id);
+      const result = await deleteDream(dream.id); // dream.id is fine here
       if (result.message.includes("successfully")) {
         toast({ title: "Dream Deleted", description: result.message });
         router.push("/dreams");
@@ -112,6 +113,7 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
+              {/* This link uses dream.id which is fine as dream is loaded */}
               <Link href={`/dreams/${dream.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
@@ -194,4 +196,3 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
     </AppShell>
   );
 }
-

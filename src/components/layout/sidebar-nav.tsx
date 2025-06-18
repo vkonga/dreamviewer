@@ -2,21 +2,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  Sidebar,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
-  SidebarTrigger,
   SidebarContent,
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { MoonStar, LayoutDashboard, BookOpen, UserCircle, LogOut, Settings } from "lucide-react";
+import { MoonStar, LayoutDashboard, BookOpen, UserCircle, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { logoutUser } from "@/lib/actions";
+import { useToast } from "@/hooks/use-toast";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,9 +26,28 @@ const navItems = [
   { href: "/profile", label: "Profile", icon: UserCircle },
 ];
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  user: SupabaseUser | null; // Pass user from AppShell
+}
+
+
+export function SidebarNav({ user }: SidebarNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { open } = useSidebar();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const result = await logoutUser();
+    if (result.success) {
+      toast({ title: "Logged Out", description: result.message });
+      router.push('/auth'); // Redirect to auth page
+      router.refresh(); // Ensures server components and layouts update
+    } else {
+      toast({ title: "Logout Failed", description: result.message, variant: "destructive" });
+    }
+  };
+
 
   return (
     <>
@@ -59,20 +80,17 @@ export function SidebarNav() {
       </SidebarContent>
       <Separator className="my-0" />
       <SidebarFooter className="p-4">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 px-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem("isMockAuthenticated");
-            }
-            window.location.href = '/auth';
-          }}
-          aria-label="Log Out"
-        >
-          <LogOut className="h-5 w-5" />
-          {open && <span>Log Out</span>}
-        </Button>
+        {user && (
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2 px-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            onClick={handleLogout}
+            aria-label="Log Out"
+          >
+            <LogOut className="h-5 w-5" />
+            {open && <span>Log Out</span>}
+          </Button>
+        )}
       </SidebarFooter>
     </>
   );

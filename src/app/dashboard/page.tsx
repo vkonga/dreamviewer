@@ -2,25 +2,26 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDreams } from "@/lib/actions";
+import { getDreams, getCurrentUser } from "@/lib/actions"; // Import getCurrentUser
 import Link from "next/link";
-import { PlusCircle, BarChartHorizontalBig, ListChecks, Edit3 } from "lucide-react";
+import { PlusCircle, ListChecks, Edit3 } from "lucide-react";
 import type { Dream } from "@/lib/definitions";
 import { format } from 'date-fns';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts"
 import type { ChartConfig } from "@/components/ui/chart"
+import { redirect } from "next/navigation";
 
 
 async function DreamFeed() {
-  const dreams = await getDreams();
-  const recentDreams = dreams.slice(0, 5); // Show latest 5
+  // In a real app, getDreams should be user-specific.
+  // This mock version doesn't filter by user yet.
+  const dreams = await getDreams(); 
+  const recentDreams = dreams.slice(0, 5); 
 
   if (recentDreams.length === 0) {
     return (
@@ -70,7 +71,7 @@ async function DreamFeed() {
 }
 
 async function InsightsWidget() {
-  const dreams = await getDreams();
+  const dreams = await getDreams(); // This should also be user-specific
   const emotionCounts: { [key: string]: number } = {};
   dreams.forEach(dream => {
     dream.emotions.forEach(emotion => {
@@ -81,17 +82,15 @@ async function InsightsWidget() {
   const chartData = Object.entries(emotionCounts)
     .map(([name, total]) => ({ name, total }))
     .sort((a, b) => b.total - a.total)
-    .slice(0, 5); // Top 5 emotions
+    .slice(0, 5);
 
   const chartConfig = {} as ChartConfig
   chartData.forEach((item, index) => {
     chartConfig[item.name] = {
       label: item.name,
-      // Use chart colors from theme
       color: `hsl(var(--chart-${(index % 5) + 1}))`,
     }
   });
-
 
   return (
     <Card className="bg-card/80 shadow-lg">
@@ -139,26 +138,22 @@ async function InsightsWidget() {
 }
 
 
-export default function DashboardPage() {
-  // In a real app, user data would come from session/auth context
-  const mockUser = { username: "Dreamer" }; 
-  if (typeof window !== 'undefined') {
-    const storedUser = localStorage.getItem("mockUser");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if(parsedUser.username) mockUser.username = parsedUser.username;
-      } catch (e) { console.error("Failed to parse user from localStorage", e)}
-    }
-  }
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
 
+  if (!user) {
+    // This should ideally be handled by middleware, but as a fallback
+    redirect('/auth');
+  }
+  
+  const username = user.username || "Dreamer";
 
   return (
     <AppShell>
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="font-headline text-4xl font-bold">Welcome, {mockUser.username}!</h1>
+            <h1 className="font-headline text-4xl font-bold">Welcome, {username}!</h1>
             <p className="text-lg text-muted-foreground">Ready to explore your dreams?</p>
           </div>
           <Button size="lg" asChild className="shadow-md hover:shadow-lg transition-shadow">

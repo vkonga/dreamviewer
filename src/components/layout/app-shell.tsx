@@ -1,6 +1,6 @@
 
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   SidebarProvider,
   Sidebar,
@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { Button } from "../ui/button";
-import { PanelLeft } from "lucide-react";
+import { Loader2, PanelLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -20,28 +23,70 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = React.useState(isMobile ? false : true);
+  const supabase = createSupabaseClientComponentClient();
+  const router = useRouter();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
-  // Effect to handle mock authentication check
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem("isMockAuthenticated") !== "true") {
-      window.location.href = '/auth'; // Redirect to auth if not "logged in"
-    }
-  }, []);
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoadingAuth(false);
+      if (!session) {
+        router.push('/auth');
+      }
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoadingAuth(false);
+      if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+        router.push('/auth');
+      } else if (event === 'SIGNED_IN') {
+        // No automatic redirect here to avoid loops, let middleware or page handle it
+        // router.push('/dashboard'); // This could cause issues if already on dashboard
+      }
+      router.refresh(); // Ensure layout re-renders with new auth state
+    });
+
+    return () => {
+      authListener?.unsubscribe();
+    };
+  }, [supabase, router]);
   
-  // Render null or a loading state while checking auth to prevent flash of content
-  if (typeof window !== 'undefined' && localStorage.getItem("isMockAuthenticated") !== "true") {
-    return <div className="flex h-screen w-screen items-center justify-center bg-background"><p className="text-foreground">Loading...</p></div>;
+  if (loadingAuth) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+        <p className="text-foreground ml-2">Loading authentication...</p>
+      </div>
+    );
   }
+
+  // This check is now mostly handled by middleware and the useEffect above.
+  // However, it's a final client-side check before rendering children.
+  if (!user && !loadingAuth) { 
+    // router.push('/auth') should have already triggered, but as a fallback.
+    // Returning null or a loading state here prevents rendering children if user is null.
+    return (
+         <div className="flex h-screen w-screen items-center justify-center bg-background">
+            <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+            <p className="text-foreground ml-2">Redirecting...</p>
+        </div>
+    );
+  }
+
 
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen} defaultOpen={!isMobile}>
       <Sidebar side="left" variant="sidebar" collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarNav />
-        {!isMobile && <SidebarRail />}
+        <SidebarNav user={user} />
       </Sidebar>
       <SidebarInset className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur md:px-6">
-          {/* Mobile sidebar trigger needs to be part of the main content flow */}
           <div className="md:hidden">
             <SidebarTrigger asChild>
               <Button variant="outline" size="icon">
@@ -51,9 +96,9 @@ export function AppShell({ children }: AppShellProps) {
             </SidebarTrigger>
           </div>
           <div className="flex-1">
-            {/* You can add breadcrumbs or page titles here */}
+            {/* Breadcrumbs or page titles */}
           </div>
-          {/* Add User Profile Dropdown here if needed */}
+          {/* User Profile Dropdown could go here, using `user` state */}
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in">
           {children}

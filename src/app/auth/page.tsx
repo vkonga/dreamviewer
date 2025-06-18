@@ -15,6 +15,7 @@ import { loginUser, registerUser } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -35,6 +36,7 @@ function AuthForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const supabase = createSupabaseClientComponentClient();
   
   const initialTab = searchParams.get("mode") === "signup" ? "signup" : "login";
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -53,18 +55,36 @@ function AuthForm() {
     reset: resetSignup,
   } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.push("/dashboard"); // Redirect if user becomes authenticated
+      }
+    });
+
+    // Check initial auth state
+    const checkInitialSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            router.push("/dashboard");
+        }
+    };
+    checkInitialSession();
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [router, supabase]);
+
+
   const onLogin: SubmitHandler<LoginFormData> = async (data) => {
     setIsLoading(true);
-    // In a real app, password should not be passed like this. This is for mock.
     const result = await loginUser({ email: data.email, password_DO_NOT_USE: data.password });
     setIsLoading(false);
     if (result.success) {
       toast({ title: "Login Successful", description: result.message });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("isMockAuthenticated", "true");
-        localStorage.setItem("mockUser", JSON.stringify(result.user));
-      }
-      router.push("/dashboard");
+      router.push("/dashboard"); // Supabase session will be handled by middleware/AppShell
+      router.refresh(); // Force re-render of layout to pick up new auth state
     } else {
       toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }
@@ -72,13 +92,14 @@ function AuthForm() {
 
   const onRegister: SubmitHandler<RegisterFormData> = async (data) => {
     setIsLoading(true);
-    // In a real app, password should not be passed like this. This is for mock.
     const result = await registerUser({ email: data.email, password_DO_NOT_USE: data.password, username: data.username });
     setIsLoading(false);
     if (result.success) {
-      toast({ title: "Registration Successful", description: result.message });
+      toast({ title: "Registration Attempted", description: result.message }); // Message might include "check email"
       resetSignup();
-      setActiveTab("login"); // Switch to login tab
+      // Don't automatically switch to login tab if email confirmation is needed.
+      // Let the user decide or handle redirection based on Supabase flow.
+      // setActiveTab("login"); 
     } else {
       toast({ title: "Registration Failed", description: result.message, variant: "destructive" });
     }
@@ -177,7 +198,6 @@ function AuthForm() {
 }
 
 export default function AuthPage() {
-  // Suspense boundary for useSearchParams
   return (
     <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}>
       <AuthForm />

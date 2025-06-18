@@ -27,14 +27,14 @@ export function AppHeader() {
     };
     getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
       router.refresh(); // Refresh to update server-side components if any depend on auth state
     });
 
     return () => {
-      authListener.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [supabase, router]);
 

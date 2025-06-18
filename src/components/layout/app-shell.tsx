@@ -40,7 +40,7 @@ export function AppShell({ children }: AppShellProps) {
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setLoadingAuth(false);
       if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
@@ -53,7 +53,7 @@ export function AppShell({ children }: AppShellProps) {
     });
 
     return () => {
-      authListener?.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [supabase, router]);
   

@@ -10,7 +10,10 @@ export const metadata: Metadata = {
   title: 'DreamView - Your Personal Dream Journal',
   description: 'Record, track, and analyze your dreams with AI-powered insights.',
   icons: {
-    icon: dreamViewFaviconSvgDataUri,
+    icon: [
+      // Using an array of IconDescriptor for more explicit definition
+      { url: dreamViewFaviconSvgDataUri, type: 'image/svg+xml', sizes: 'any' }
+    ],
   },
 };
 

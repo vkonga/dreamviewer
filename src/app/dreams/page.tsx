@@ -9,8 +9,9 @@ import type { Dream } from "@/lib/definitions";
 import { format } from 'date-fns';
 import { Input } from "@/components/ui/input"; 
 import { Separator } from "@/components/ui/separator";
+import React from "react"; // Import React for React.memo
 
-function DreamListItem({ dream }: { dream: Dream }) {
+const DreamListItem = React.memo(function DreamListItem({ dream }: { dream: Dream }) {
   return (
     <Card className="flex flex-col h-full bg-card/90 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/40 border-2 border-transparent rounded-xl overflow-hidden transform hover:-translate-y-1.5">
       <CardHeader className="pb-3 pt-5 px-5">
@@ -43,7 +44,7 @@ function DreamListItem({ dream }: { dream: Dream }) {
       </CardFooter>
     </Card>
   );
-}
+});
 
 export default async function DreamsListPage() {
   const dreams = await getDreams();

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -19,7 +20,6 @@ export function AppHeader() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check initial session state
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
@@ -27,29 +27,25 @@ export function AppHeader() {
     };
     getInitialSession();
 
-    // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      setLoading(false); // Ensure loading is false after any auth event
+      setLoading(false);
     });
 
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, [supabase]); // Effect only depends on supabase client instance
+  }, [supabase]);
 
   const handleLogout = async () => {
     setLoading(true); 
     const result = await logoutUser();
     if (result.success) {
       toast({ title: "Logged Out", description: result.message });
-      // setUser(null) will be handled by onAuthStateChange
       router.push("/auth"); 
     } else {
       toast({ title: "Logout Failed", description: result.message, variant: "destructive" });
     }
-    // setLoading(false) will be handled by onAuthStateChange if session becomes null
-    // or if user navigates away and component re-evaluates loading state
   };
 
   const isAuthPage = pathname === '/auth' || pathname === '/auth/';

@@ -52,12 +52,10 @@ export function SidebarNav({ user }: SidebarNavProps) {
   return (
     <>
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="flex items-center" aria-label="DreamView Dashboard">
-            <MoonStar className="h-8 w-8 text-primary" />
-          </Link>
-          {open && <span className="font-headline text-xl font-semibold">DreamView</span>}
-        </div>
+        <Link href="/" className="flex items-center gap-2" aria-label="DreamView Home">
+          <MoonStar className="h-8 w-8 text-primary" />
+          {open && <span className="font-headline text-xl font-semibold text-foreground">DreamView</span>}
+        </Link>
       </SidebarHeader>
       <Separator className="my-0" />
       <SidebarContent className="p-2">

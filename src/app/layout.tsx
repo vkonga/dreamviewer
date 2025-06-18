@@ -4,13 +4,13 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AlertTriangle } from 'lucide-react';
 
-const moonFaviconSvgDataUri = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>";
+const dreamViewFaviconSvgDataUri = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%23283593%22/><path d=%22M21 7 A10 10 0 1 0 21 25 A7 7 0 1 1 21 7 Z%22 fill=%22%23D1C4E9%22/><path d=%22M23 7 L23 9 M22 8 L24 8%22 stroke=%22%23D1C4E9%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/></svg>";
 
 export const metadata: Metadata = {
   title: 'DreamView - Your Personal Dream Journal',
   description: 'Record, track, and analyze your dreams with AI-powered insights.',
   icons: {
-    icon: moonFaviconSvgDataUri,
+    icon: dreamViewFaviconSvgDataUri,
   },
 };
 

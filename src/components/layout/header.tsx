@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -20,38 +19,40 @@ export function AppHeader() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const getSession = async () => {
+    // Check initial session state
+    const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setLoading(false);
     };
-    getSession();
+    getInitialSession();
 
+    // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      setLoading(false);
-      // router.refresh(); // Removed: Let state update drive re-render directly.
-                        // Other router.refresh() calls (e.g., in AuthForm or AppShell)
-                        // will handle broader page data refresh if needed.
+      setLoading(false); // Ensure loading is false after any auth event
     });
 
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [supabase]); // Effect only depends on supabase client instance
 
   const handleLogout = async () => {
+    setLoading(true); 
     const result = await logoutUser();
     if (result.success) {
       toast({ title: "Logged Out", description: result.message });
-      router.push("/auth"); // Navigate to auth page after logout
-      router.refresh();
+      // setUser(null) will be handled by onAuthStateChange
+      router.push("/auth"); 
     } else {
       toast({ title: "Logout Failed", description: result.message, variant: "destructive" });
     }
+    // setLoading(false) will be handled by onAuthStateChange if session becomes null
+    // or if user navigates away and component re-evaluates loading state
   };
 
-  const isAuthPage = pathname === '/auth';
+  const isAuthPage = pathname === '/auth' || pathname === '/auth/';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

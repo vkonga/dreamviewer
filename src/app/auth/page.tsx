@@ -59,9 +59,8 @@ function AuthForm() {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // If a user becomes authenticated while on this page (e.g. already logged in, or different tab login)
+        // If a user becomes authenticated while on this page (e.g. different tab login)
         // redirect them away from /auth to the home page.
-        // The specific redirection *after clicking the login button* is handled in onLogin.
         // Middleware also handles redirecting already authenticated users. This is a client-side safeguard.
         if (pathname === '/auth' || pathname === '/auth/') { 
              router.push("/");
@@ -70,7 +69,6 @@ function AuthForm() {
     });
 
     // Check initial auth state: if user lands on /auth but is already logged in, redirect to home page.
-    // Middleware should primarily handle this.
     const checkInitialSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -94,7 +92,7 @@ function AuthForm() {
     if (result.success) {
       toast({ title: "Login Successful", description: result.message });
       router.push("/"); // Redirect to home page on successful login
-      router.refresh(); 
+      // router.refresh(); // Removed: Let AppShell/AppHeader handle refresh via onAuthStateChange
     } else {
       toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }
@@ -107,10 +105,6 @@ function AuthForm() {
     if (result.success) {
       toast({ title: "Registration Attempted", description: result.message }); 
       resetSignup();
-      // If registration implies immediate login (depends on Supabase settings, e.g. email confirmation)
-      // and result.message indicates a login or session is active, you might redirect here too.
-      // For now, relying on onAuthStateChange or user navigating after seeing message.
-      // If email confirmation is OFF, Supabase logs user in, onAuthStateChange will trigger redirect.
     } else {
       toast({ title: "Registration Failed", description: result.message, variant: "destructive" });
     }

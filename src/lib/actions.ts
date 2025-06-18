@@ -26,7 +26,7 @@ const DreamFormSchema = z.object({
   title: z.string().min(1, "Title is required."),
   date: z.date({ coerce: true }), // Coerces input to Date object
   description: z.string().min(1, "Description is required."),
-  tags: z.string().optional(), 
+  tags: z.string().optional(),
   emotions: z.array(z.string()).optional(),
 });
 
@@ -72,9 +72,9 @@ export async function getDreamById(id: string): Promise<Dream | undefined> {
   }
   if (!user) {
     console.warn(`getDreamById(${id}) - No user session found.`);
-    return undefined; 
+    return undefined;
   }
-  
+
   console.log(`getDreamById(${id}) - Attempting to fetch for user: ${user.id}`);
   const { data, error } = await supabase
     .from("dreams")
@@ -114,11 +114,11 @@ export async function createDream(values: DreamFormValues) {
   }
 
   const { title, date, description, tags, emotions } = validatedFields.data;
-  
+
   const newDreamData = {
-    user_id: user.id, 
+    user_id: user.id,
     title,
-    date: date.toISOString(), 
+    date: date.toISOString(),
     description,
     tags: tags ? tags.split(",").map((tag) => tag.trim()).filter(tag => tag) : [],
     emotions: emotions || [],
@@ -133,9 +133,11 @@ export async function createDream(values: DreamFormValues) {
 
   if (error) {
     console.error("createDream - Error inserting dream:", JSON.stringify(error, null, 2));
-    return { message: "Database error: Failed to create dream." };
+    const specificMessage = error.message || "Failed to create dream.";
+    const errorCode = error.code || "UNKNOWN_CODE";
+    return { message: `Database error: ${specificMessage} (Code: ${errorCode}). Please check server logs for full details.` };
   }
-  
+
   if (!insertedDream) {
     console.error("createDream - Failed to create dream, no data returned from insert.");
     return { message: "Failed to create dream, no data returned." };
@@ -183,10 +185,10 @@ export async function updateDream(id: string, values: DreamFormValues) {
     .from("dreams")
     .update(dreamToUpdate)
     .eq("id", id)
-    .eq("user_id", user.id) 
+    .eq("user_id", user.id)
     .select()
     .single();
-  
+
   if (error) {
     console.error(`updateDream(${id}) - Error updating dream:`, JSON.stringify(error, null, 2));
     return { message: "Database error: Failed to update dream." };
@@ -217,19 +219,19 @@ export async function deleteDream(id: string) {
     console.warn(`deleteDream(${id}) - No user session found.`);
     return { message: "User not authenticated." };
   }
-  
+
   console.log(`deleteDream(${id}) - Attempting to delete for user: ${user.id}`);
   const { error, count } = await supabase
     .from("dreams")
-    .delete({ count: 'exact' }) 
+    .delete({ count: 'exact' })
     .eq("id", id)
-    .eq("user_id", user.id); 
+    .eq("user_id", user.id);
 
   if (error) {
     console.error(`deleteDream(${id}) - Error deleting dream:`, JSON.stringify(error, null, 2));
     return { message: "Database error: Failed to delete dream." };
   }
-  
+
   if (count === 0) {
      console.warn(`deleteDream(${id}) - Dream not found or unauthorized for deletion for user: ${user.id}.`);
      return { message: "Dream not found or unauthorized for deletion." };
@@ -254,7 +256,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
     return { message: "User not authenticated.", error: "User not authenticated." };
   }
 
-  const dream = await getDreamById(dreamId); 
+  const dream = await getDreamById(dreamId);
   if (!dream) {
     return { message: "Dream not found or unauthorized.", error: "Dream not found." };
   }
@@ -271,9 +273,9 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
     console.log(`interpretDream(${dreamId}) - AI interpretation received, attempting to save.`);
     const { error: updateError } = await supabase
       .from("dreams")
-      .update({ 
+      .update({
         ai_interpretation: interpretation,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString()
       })
       .eq("id", dreamId)
       .eq("user_id", user.id);
@@ -282,7 +284,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
       console.error(`interpretDream(${dreamId}) - Error saving AI interpretation:`, JSON.stringify(updateError, null, 2));
       return { interpretation, message: "Successfully interpreted, but failed to save interpretation.", error: updateError.message };
     }
-    
+
     console.log(`interpretDream(${dreamId}) - Dream interpreted and saved successfully.`);
     revalidatePath(`/dreams/${dreamId}`);
     return { interpretation, message: "Dream interpreted and saved successfully." };
@@ -305,9 +307,9 @@ export async function loginUser(data: { email: string; password_DO_NOT_USE: stri
     console.error("loginUser - Error:", error.message);
     return { success: false, message: error.message };
   }
-  revalidatePath('/', 'layout'); 
-  revalidatePath('/dashboard'); // Explicitly revalidate dashboard
-  revalidatePath('/dreams');   // Explicitly revalidate dreams
+  revalidatePath('/', 'layout');
+  revalidatePath('/dashboard');
+  revalidatePath('/dreams');
   console.log(`loginUser - User ${data.email} logged in successfully.`);
   return { success: true, message: "Logged in successfully!" };
 }
@@ -332,7 +334,7 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
     console.warn("registerUser - User already exists or an issue occurred (no new identity).");
     return { success: false, message: "User already exists or another issue occurred. If you haven't confirmed your email, please check your inbox." };
   }
-  
+
   let message = "Registration successful! ";
   if (signUpData.session === null && signUpData.user?.email_confirmed_at === null ) {
      message += "Please check your email to confirm your account.";
@@ -353,7 +355,7 @@ export async function logoutUser() {
     console.error("logoutUser - Error:", error.message);
     return { success: false, message: `Logout failed: ${error.message}` };
   }
-  revalidatePath('/', 'layout'); 
+  revalidatePath('/', 'layout');
   console.log("logoutUser - User logged out successfully.");
   return { success: true, message: "Logged out successfully." };
 }
@@ -372,7 +374,7 @@ export async function getCurrentUser(): Promise<User | null> {
     return {
       id: user.id,
       email: user.email || "",
-      username: userMetadata?.username || user.email?.split('@')[0] || "User", 
+      username: userMetadata?.username || user.email?.split('@')[0] || "User",
       createdAt: new Date(user.created_at),
     };
   }
@@ -395,7 +397,7 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
   const updates: { email?: string; data?: UserMetadata } = {};
   if (data.email && data.email !== currentUser.email) {
-    updates.email = data.email; 
+    updates.email = data.email;
   }
   if (data.username) {
     const currentMetaData = currentUser.user_metadata || {};
@@ -406,7 +408,7 @@ export async function updateUserProfile(data: { username?: string; email?: strin
     console.log("updateUserProfile - No changes to update.");
     return { success: true, message: "No changes to update." };
   }
-  
+
   console.log(`updateUserProfile - Attempting to update profile for user ${currentUser.id}:`, updates);
   const { error } = await supabase.auth.updateUser(updates);
 
@@ -417,9 +419,6 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
   console.log(`updateUserProfile - Profile updated successfully for user ${currentUser.id}.`);
   revalidatePath('/profile');
-  revalidatePath('/dashboard'); 
+  revalidatePath('/dashboard');
   return { success: true, message: "Profile updated successfully." };
 }
-
-
-    

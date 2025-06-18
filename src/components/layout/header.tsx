@@ -27,14 +27,16 @@ export function AppHeader() {
     };
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
-      router.refresh(); // Refresh to update server-side components if any depend on auth state
+      // router.refresh(); // Removed: Let state update drive re-render directly.
+                        // Other router.refresh() calls (e.g., in AuthForm or AppShell)
+                        // will handle broader page data refresh if needed.
     });
 
     return () => {
-      subscription?.unsubscribe();
+      authListener?.subscription?.unsubscribe();
     };
   }, [supabase, router]);
 

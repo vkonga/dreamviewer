@@ -57,6 +57,10 @@ const interpretDreamFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      console.error('interpretDreamFlow: AI prompt did not return a valid output.');
+      throw new Error('AI analysis failed to produce a result. The model might not have been able to interpret the dream in the expected format.');
+    }
+    return output;
   }
 );

@@ -54,9 +54,9 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   const handleAnalyzeDream = async () => {
     if (!dream) return;
     setIsAnalyzing(true);
-    const result = await interpretDream(dream.id); // dream.id is fine here
+    const result = await interpretDream(dream.id); 
     if (result.interpretation) {
-      setDream((prevDream) => prevDream ? { ...prevDream, aiInterpretation: result.interpretation } : null);
+      setDream((prevDream) => prevDream ? { ...prevDream, ai_interpretation: result.interpretation } : null);
       toast({ title: "Analysis Complete", description: result.message });
     } else {
       toast({ title: "Analysis Failed", description: result.message, variant: "destructive" });
@@ -67,7 +67,7 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   const handleDeleteDream = async () => {
     if (!dream) return;
     startDeleteTransition(async () => {
-      const result = await deleteDream(dream.id); // dream.id is fine here
+      const result = await deleteDream(dream.id); 
       if (result.message.includes("successfully")) {
         toast({ title: "Dream Deleted", description: result.message });
         router.push("/dreams");
@@ -113,7 +113,6 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              {/* This link uses dream.id which is fine as dream is loaded */}
               <Link href={`/dreams/${dream.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Link>
@@ -175,8 +174,8 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
 
         <Separator className="my-8" />
 
-        {dream.aiInterpretation ? (
-          <AIInterpretationDisplay interpretation={dream.aiInterpretation} />
+        {dream.ai_interpretation ? (
+          <AIInterpretationDisplay interpretation={dream.ai_interpretation} />
         ) : (
           <div className="text-center p-6 border border-dashed rounded-lg bg-muted/30">
             <Sparkles className="mx-auto h-12 w-12 text-muted-foreground mb-3" />

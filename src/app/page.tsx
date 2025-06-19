@@ -109,11 +109,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Upcoming Features Section */}
+        {/* Explore More AI Magic Section */}
         <section className="py-16 md:py-24 bg-background">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold text-center mb-12">Explore More AI Magic</h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center items-stretch">
+            <div className="flex flex-wrap justify-center gap-8 items-stretch">
               <Card className="flex flex-col text-center bg-card shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up max-w-md w-full" style={{animationDelay: `${4 * 150}ms`}}>
                 <CardHeader>
                   <ImageIcon className="mx-auto h-12 w-12 text-accent mb-4" /> 
@@ -210,4 +210,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

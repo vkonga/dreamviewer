@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Dream, DreamFormValues, AIInterpretation, User, DreamTableRow } from "./definitions";
 import { interpretDream as runAIInterpretationFlow, type InterpretDreamOutput } from "@/ai/flows/interpret-dream";
+import { generateImageFromDream as runDreamToImageFlow, type GenerateImageFromDreamOutput } from "@/ai/flows/dream-to-image-flow";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserMetadata } from "@/lib/supabase/database.types";
 
@@ -264,6 +265,12 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
   try {
     console.log(`interpretDream(${dreamId}) - Requesting AI interpretation for dream description: "${dream.description.substring(0, 50)}..."`);
     const aiResponse: InterpretDreamOutput = await runAIInterpretationFlow({ dreamText: dream.description });
+    
+    if (!aiResponse || !aiResponse.overallMeaning) {
+        console.error(`interpretDream(${dreamId}) - AI interpretation flow did not return a valid output.`);
+        throw new Error('AI analysis failed to produce a result. The model might not have been able to interpret the dream in the expected format.');
+    }
+
     const interpretation: AIInterpretation = {
       overallMeaning: aiResponse.overallMeaning,
       symbols: aiResponse.symbols,
@@ -294,6 +301,51 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
     return { message: "Failed to interpret dream.", error: (error as Error).message };
   }
 }
+
+export async function generateDreamImage(dreamId: string): Promise<{ imageDataUri?: string, message: string, error?: string }> {
+  const supabase = createSupabaseServerClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error(`generateDreamImage(${dreamId}) - Error fetching user:`, userError.message);
+    return { message: "User not authenticated.", error: "User not authenticated." };
+  }
+  if (!user) {
+    console.warn(`generateDreamImage(${dreamId}) - No user session found.`);
+    return { message: "User not authenticated.", error: "User not authenticated." };
+  }
+
+  const dream = await getDreamById(dreamId);
+  if (!dream) {
+    return { message: "Dream not found or unauthorized.", error: "Dream not found." };
+  }
+  if (!dream.description || dream.description.trim().length < 10) {
+    return { message: "Dream description is too short to generate an image.", error: "Dream description too short."};
+  }
+
+  try {
+    console.log(`generateDreamImage(${dreamId}) - Requesting AI image generation for dream: "${dream.title}"`);
+    const aiResponse: GenerateImageFromDreamOutput = await runDreamToImageFlow({ dreamText: dream.description });
+    
+    if (!aiResponse || !aiResponse.imageDataUri) {
+        console.error(`generateDreamImage(${dreamId}) - AI image generation flow did not return a valid image URI.`);
+        throw new Error('AI image generation failed. The model might not have produced an image.');
+    }
+    
+    // For now, we don't save the image URI to the database.
+    // If saving is desired, a new column `generated_image_url` would be needed in the `dreams` table
+    // and an update query here.
+
+    console.log(`generateDreamImage(${dreamId}) - Dream image generated successfully.`);
+    // No revalidation needed if not saving to DB
+    return { imageDataUri: aiResponse.imageDataUri, message: "Dream image generated successfully." };
+
+  } catch (error) {
+    console.error(`generateDreamImage(${dreamId}) - AI image generation flow error:`, error);
+    return { message: "Failed to generate dream image.", error: (error as Error).message };
+  }
+}
+
 
 // Auth actions using Supabase
 export async function loginUser(data: { email: string; password_DO_NOT_USE: string }) {

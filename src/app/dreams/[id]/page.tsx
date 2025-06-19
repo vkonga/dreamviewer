@@ -3,7 +3,7 @@
 
 import { use, useEffect, useState, useTransition } from "react"; // Import use
 import { AppShell } from "@/components/layout/app-shell";
-import { getDreamById, interpretDream, deleteDream } from "@/lib/actions";
+import { getDreamById, interpretDream, deleteDream, generateDreamImage } from "@/lib/actions";
 import type { Dream, AIInterpretation } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { AIInterpretationDisplay } from "@/components/dreams/ai-interpretation-display";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image"; // For displaying generated image
 import { format } from "date-fns";
-import { CalendarDays, Tag, Smile, Edit, Trash2, Sparkles, Loader2, ChevronLeft } from "lucide-react";
+import { CalendarDays, Tag, Smile, Edit, Trash2, Sparkles, Loader2, ChevronLeft, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -34,34 +35,52 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   const [isLoadingDream, setIsLoadingDream] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     async function fetchDream() {
       setIsLoadingDream(true);
-      const fetchedDream = await getDreamById(resolvedParams.id); // Use resolvedParams.id
+      setGeneratedImageUrl(null); // Reset image on dream change
+      const fetchedDream = await getDreamById(resolvedParams.id); 
       if (fetchedDream) {
         setDream(fetchedDream);
       } else {
-        notFound(); // Or set an error state
+        notFound(); 
       }
       setIsLoadingDream(false);
     }
     fetchDream();
-  }, [resolvedParams.id]); // Use resolvedParams.id in dependency array
+  }, [resolvedParams.id]); 
 
   const handleAnalyzeDream = async () => {
     if (!dream) return;
     setIsAnalyzing(true);
+    setGeneratedImageUrl(null); // Clear previous image if re-analyzing
     const result = await interpretDream(dream.id); 
     if (result.interpretation) {
       setDream((prevDream) => prevDream ? { ...prevDream, ai_interpretation: result.interpretation } : null);
       toast({ title: "Analysis Complete", description: result.message });
     } else {
-      toast({ title: "Analysis Failed", description: result.message, variant: "destructive" });
+      toast({ title: "Analysis Failed", description: result.message || "An unknown error occurred.", variant: "destructive" });
     }
     setIsAnalyzing(false);
+  };
+
+  const handleGenerateDreamImage = async () => {
+    if (!dream) return;
+    setIsGeneratingImage(true);
+    setGeneratedImageUrl(null); // Clear previous image
+    const result = await generateDreamImage(dream.id);
+    if (result.imageDataUri) {
+      setGeneratedImageUrl(result.imageDataUri);
+      toast({ title: "Image Generated", description: result.message });
+    } else {
+      toast({ title: "Image Generation Failed", description: result.message || "Could not generate image.", variant: "destructive" });
+    }
+    setIsGeneratingImage(false);
   };
 
   const handleDeleteDream = async () => {
@@ -88,7 +107,6 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
   }
 
   if (!dream) {
-     // This case should be handled by notFound, but as a fallback:
     return (
       <AppShell>
         <div className="text-center">
@@ -174,23 +192,54 @@ export default function DreamViewPage({ params }: { params: { id: string } }) {
 
         <Separator className="my-8" />
 
-        {dream.ai_interpretation ? (
-          <AIInterpretationDisplay interpretation={dream.ai_interpretation} />
-        ) : (
-          <div className="text-center p-6 border border-dashed rounded-lg bg-muted/30">
-            <Sparkles className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-            <h3 className="text-xl font-semibold mb-2">Unlock AI Insights</h3>
-            <p className="text-muted-foreground mb-4">This dream hasn't been analyzed by our AI yet.</p>
-            <Button onClick={handleAnalyzeDream} disabled={isAnalyzing} size="lg">
-              {isAnalyzing ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        <div className="space-y-6">
+          {dream.ai_interpretation ? (
+            <AIInterpretationDisplay interpretation={dream.ai_interpretation} />
+          ) : (
+            <div className="text-center p-6 border border-dashed rounded-lg bg-muted/30">
+              <Sparkles className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+              <h3 className="text-xl font-semibold mb-2">Unlock AI Insights</h3>
+              <p className="text-muted-foreground mb-4">This dream hasn't been analyzed by our AI yet.</p>
+              <Button onClick={handleAnalyzeDream} disabled={isAnalyzing || isGeneratingImage} size="lg">
+                {isAnalyzing ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-5 w-5" />
+                )}
+                Analyze with AI
+              </Button>
+            </div>
+          )}
+
+          {/* Dream to Image Section */}
+          <Card className="bg-muted/30 shadow-inner">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-6 w-6 text-primary" />
+                <CardTitle className="font-headline text-2xl">Visualize Your Dream</CardTitle>
+              </div>
+              <CardDescription>Generate an AI-powered image based on your dream's description.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              {generatedImageUrl ? (
+                <div className="mt-4 relative aspect-video w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-lg">
+                  <Image src={generatedImageUrl} alt="AI generated dream visualization" layout="fill" objectFit="contain" />
+                </div>
               ) : (
-                <Sparkles className="mr-2 h-5 w-5" />
+                 <p className="text-muted-foreground mb-4">{isGeneratingImage ? "Generating your dream image, please wait..." : "No image generated yet for this dream."}</p>
               )}
-              Analyze with AI
-            </Button>
-          </div>
-        )}
+               <Button onClick={handleGenerateDreamImage} disabled={isGeneratingImage || isAnalyzing} size="lg" className="mt-4">
+                {isGeneratingImage ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <ImageIcon className="mr-2 h-5 w-5" />
+                )}
+                {generatedImageUrl ? "Re-generate Image" : "Generate Dream Image"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
       </div>
     </AppShell>
   );

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AppHeader } from "@/components/layout/header";
-import { Sparkles, BookText, BarChart3, Users, MoonStar, ImageIcon } from "lucide-react"; // Changed Film to ImageIcon
+import { Sparkles, BookText, BarChart3, Users, MoonStar, ImageIcon, Cloud, ShieldCheck, Lock } from "lucide-react"; 
 import Image from "next/image";
 
 export default function LandingPage() {
@@ -142,8 +142,54 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Premium Subscription Section */}
+        <section className="py-16 md:py-24 bg-gradient-to-br from-muted via-background to-muted">
+          <div className="container">
+            <h2 className="font-headline text-4xl md:text-5xl font-bold text-center mb-5 text-primary">
+              Unlock the Full Power of DreamView
+            </h2>
+            <p className="text-xl text-muted-foreground text-center mb-12 max-w-3xl mx-auto text-balance">
+              Elevate your dream exploration with our Premium Subscription. Gain exclusive access to advanced features, enhanced capabilities, and the ultimate dream journaling experience.
+            </p>
+            <div className="flex justify-center animate-slide-in-up" style={{animationDelay: "300ms"}}>
+              <Card className="max-w-xl w-full bg-card shadow-2xl overflow-hidden border-2 border-primary/50 rounded-xl">
+                <div className="p-8 bg-primary/5 text-center">
+                  <h3 className="font-headline text-3xl font-semibold text-primary">DreamView Premium</h3>
+                  <p className="text-6xl font-bold text-foreground mt-3 mb-1">
+                    $3.99
+                    <span className="text-xl font-normal text-muted-foreground">/month</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">Billed monthly. Cancel anytime. No hidden fees.</p>
+                </div>
+                <CardContent className="p-8 space-y-6">
+                  <h4 className="text-xl font-semibold text-center text-foreground mb-6">Premium Benefits Include:</h4>
+                  <ul className="space-y-5">
+                    {[
+                      { icon: Cloud, text: "Significantly Enhanced Cloud Storage for all your dreams, interpretations, and generated images." },
+                      { icon: ImageIcon, text: "Unlimited & Priority AI Image Generation to vividly bring every dream to life." },
+                      { icon: Sparkles, text: "Deeper & More Frequent AI Analysis for profound insights into your subconscious patterns." },
+                      { icon: ShieldCheck, text: "Advanced Security & Backup Options to ensure your dream journal remains private, protected, and preserved." }
+                    ].map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <item.icon className="h-7 w-7 text-accent mr-4 mt-0.5 shrink-0" />
+                        <span className="text-foreground/90 text-balance text-md">{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                   <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform hover:scale-105 mt-10 py-7 text-lg">
+                    <Link href="/auth?mode=signup">Subscribe Now & Unlock Premium</Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    A subscription is required to access the full suite of DreamView's advanced AI features and expanded cloud services.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Call to Action Section */}
-        <section className="py-16 md:py-24 bg-muted text-center">
+        <section className="py-16 md:py-24 bg-background text-center">
           <div className="container">
             <h2 className="font-headline text-4xl font-bold mb-6">Ready to Explore Your Inner World?</h2>
             <p className="text-xl text-foreground/80 mb-8 max-w-2xl mx-auto text-balance">
@@ -164,3 +210,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

@@ -1,4 +1,3 @@
-
 import { AppShell } from "@/components/layout/app-shell";
 import { DreamEditorForm } from "@/components/dreams/dream-editor-form";
 import { getDreamById } from "@/lib/actions";
@@ -8,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
-export default async function EditDreamPage({ params }: { params: { id: string } }) {
+// ✅ Correct type for dynamic route params in Next.js app router
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function EditDreamPage({ params }: PageProps) {
   const dream = await getDreamById(params.id);
 
   if (!dream) {
@@ -18,7 +24,7 @@ export default async function EditDreamPage({ params }: { params: { id: string }
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto">
-         <div className="mb-6 flex items-center gap-4">
+        <div className="mb-6 flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
             <Link href={`/dreams/${params.id}`} aria-label="Back to Dream View">
               <ChevronLeft className="h-5 w-5" />

@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 const SectionSkeleton = () => <div className="h-[50vh] w-full bg-background" />;
 
 const AiAssistantSection = dynamic(() => import('@/components/landing/ai-assistant-section').then(mod => mod.AiAssistantSection), { loading: () => <SectionSkeleton /> });
-const ImageGeneratorSection = dynamic(() => import('@/components/landing/image-generator-section').then(mod => mod.ImageGeneratorSection), { loading: () => <SectionSkeleton /> });
 const DashboardPeekSection = dynamic(() => import('@/components/landing/dashboard-peek-section').then(mod => mod.DashboardPeekSection), { loading: () => <SectionSkeleton /> });
 const FamilyTreeSection = dynamic(() => import('@/components/landing/family-tree-section').then(mod => mod.FamilyTreeSection), { loading: () => <SectionSkeleton /> });
 const SubscriptionSection = dynamic(() => import('@/components/landing/subscription-section').then(mod => mod.SubscriptionSection), { loading: () => <SectionSkeleton /> });
@@ -22,7 +21,6 @@ export default function LandingPage() {
       <main className="flex-grow">
         <HeroSection />
         <AiAssistantSection />
-        <ImageGeneratorSection />
         <DashboardPeekSection />
         <FamilyTreeSection />
         <SubscriptionSection />

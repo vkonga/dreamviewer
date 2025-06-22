@@ -385,8 +385,11 @@ export async function loginUser(data: { email: string; password_DO_NOT_USE: stri
     console.error("loginUser - Error:", error.message);
     return { success: false, message: error.message };
   }
-  revalidatePath('/', 'layout');
-  redirect('/dashboard');
+
+  // The client will handle the redirect and data refresh.
+  // Revalidating the entire site is slow and unnecessary.
+  // The new session is available via cookies for subsequent requests.
+  return { success: true, message: "Logged in successfully." };
 }
 
 export async function registerUser(data: { email: string; password_DO_NOT_USE: string; username: string }) {
@@ -416,7 +419,8 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
      console.log(`registerUser - User ${data.email} registered, email confirmation pending.`);
   } else {
      message += "You are now logged in.";
-     revalidatePath('/', 'layout');
+     // Removing revalidatePath makes registration faster.
+     // The client will redirect via onAuthStateChange and the new page will have the correct session.
      console.log(`registerUser - User ${data.email} registered and logged in.`);
   }
 

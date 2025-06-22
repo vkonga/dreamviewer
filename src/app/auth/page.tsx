@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,20 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.36 1.67-4.04 1.67-3.27 0-5.93-2.66-5.93-5.93s2.66-5.93 5.93-5.93c1.7 0 3.12.57 4.22 1.62l2.5-2.5C18.43 3.17 15.68 2 12.48 2c-5.74 0-10.44 4.6-10.44 10.32s4.7 10.32 10.44 10.32c5.66 0 10.2-3.83 10.2-10.14 0-.66-.07-1.25-.16-1.84H12.48z" fill="currentColor"/>
   </svg>
 );
+
+function GoogleSignInButton({ children }: { children: React.ReactNode }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button variant="outline" className="w-full" type="submit" disabled={pending}>
+      {pending ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <GoogleIcon className="mr-2 h-4 w-4" />
+      )}
+      {children}
+    </Button>
+  );
+}
 
 
 function AuthForm() {
@@ -148,10 +163,7 @@ function AuthForm() {
               </CardHeader>
               <CardContent>
                 <form action={signInWithGoogle}>
-                  <Button variant="outline" className="w-full" type="submit">
-                    <GoogleIcon className="mr-2 h-4 w-4" />
-                    Sign in with Google
-                  </Button>
+                  <GoogleSignInButton>Sign in with Google</GoogleSignInButton>
                 </form>
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
@@ -200,10 +212,7 @@ function AuthForm() {
               </CardHeader>
               <CardContent>
                  <form action={signInWithGoogle}>
-                  <Button variant="outline" className="w-full" type="submit">
-                    <GoogleIcon className="mr-2 h-4 w-4" />
-                    Sign up with Google
-                  </Button>
+                  <GoogleSignInButton>Sign up with Google</GoogleSignInButton>
                 </form>
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">

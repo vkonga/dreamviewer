@@ -21,9 +21,6 @@ export function SubscriptionSection() {
             <p className="flex items-center gap-2"><Star className="h-5 w-5 text-primary"/> Early Access to Family Tree</p>
             <p className="flex items-center gap-2"><Star className="h-5 w-5 text-primary"/> Cloud Memory Storage</p>
           </CardContent>
-          <CardFooter>
-             <Button size="lg" className="w-full text-lg mt-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-primary/40">Subscribe Now</Button>
-          </CardFooter>
         </Card>
       </div>
     </section>

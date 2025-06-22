@@ -11,12 +11,6 @@ export function FamilyTreeSection() {
                 <p className="text-lg text-muted-foreground mb-8">
                     Store, organize, and connect family memories—photos, videos, voice notes, and stories. Link them across generations with an interactive, living family tree.
                 </p>
-                <ul className="space-y-2 text-left mb-8 list-inside list-disc marker:text-secondary">
-                    <li>Add family members as branches</li>
-                    <li>Attach memories to each person</li>
-                    <li>AI-curated timelines and albums</li>
-                    <li className="text-muted-foreground">Coming Soon!</li>
-                </ul>
             </div>
             <div className="lg:w-1/2 flex items-center justify-center p-8 min-h-[300px] md:min-h-[400px]">
               {/* Stylized Family Tree Visualization */}

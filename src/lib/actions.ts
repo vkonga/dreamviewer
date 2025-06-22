@@ -19,6 +19,7 @@ function fromSupabaseRow(row: DreamTableRow): Dream {
     tags: row.tags || [],
     emotions: row.emotions || [],
     ai_interpretation: row.ai_interpretation || undefined, // Ensure it maps to aiInterpretation
+    generated_image_url: row.generated_image_url || undefined,
     created_at: new Date(row.created_at),
     updated_at: new Date(row.updated_at),
   };
@@ -346,13 +347,24 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
         throw new Error('AI image generation failed. The model might not have produced an image.');
     }
     
-    // For now, we don't save the image URI to the database.
-    // If saving is desired, a new column `generated_image_url` would be needed in the `dreams` table
-    // and an update query here.
+    console.log(`generateDreamImage(${dreamId}) - Dream image generated, attempting to save URI to database.`);
+    const { error: updateError } = await supabase
+      .from("dreams")
+      .update({
+        generated_image_url: aiResponse.imageDataUri,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", dreamId)
+      .eq("user_id", user.id);
 
-    console.log(`generateDreamImage(${dreamId}) - Dream image generated successfully.`);
-    // No revalidation needed if not saving to DB
-    return { imageDataUri: aiResponse.imageDataUri, message: "Dream image generated successfully." };
+    if (updateError) {
+      console.error(`generateDreamImage(${dreamId}) - Error saving generated image URL:`, JSON.stringify(updateError, null, 2));
+      return { imageDataUri: aiResponse.imageDataUri, message: "Successfully generated image, but failed to save it.", error: updateError.message };
+    }
+
+    console.log(`generateDreamImage(${dreamId}) - Dream image generated and saved successfully.`);
+    revalidatePath(`/dreams/${dreamId}`);
+    return { imageDataUri: aiResponse.imageDataUri, message: "Dream image generated and saved successfully." };
 
   } catch (error) {
     console.error(`generateDreamImage(${dreamId}) - AI image generation flow error:`, error);

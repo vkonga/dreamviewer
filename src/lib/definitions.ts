@@ -26,6 +26,7 @@ export type Dream = {
   tags: string[];
   emotions: string[];
   ai_interpretation?: AIInterpretation | null; // Changed to match Supabase convention, can be null
+  generated_image_url?: string | null; // Added to store the generated image
   created_at: Date; // Will be string from DB, converted to Date in actions
   updated_at: Date; // Will be string from DB, converted to Date in actions
 };
@@ -51,6 +52,7 @@ export type DreamTableRow = {
   tags: string[] | null;
   emotions: string[] | null;
   ai_interpretation?: AIInterpretation | null;
+  generated_image_url: string | null; // Added to match new DB column
   created_at: string; // Timestamptz comes as string
   updated_at: string; // Timestamptz comes as string
 };

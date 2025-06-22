@@ -32,7 +32,7 @@ export function DreamViewClient({ initialDream }: { initialDream: Dream }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(initialDream.generated_image_url || null);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -53,7 +53,7 @@ export function DreamViewClient({ initialDream }: { initialDream: Dream }) {
   const handleGenerateDreamImage = async () => {
     if (!dream) return;
     setIsGeneratingImage(true);
-    setGeneratedImageUrl(null); // Clear previous image
+    // Don't clear previous image, let it be replaced on success
     const result = await generateDreamImage(dream.id);
     if (result.imageDataUri) {
       setGeneratedImageUrl(result.imageDataUri);

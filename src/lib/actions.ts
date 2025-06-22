@@ -9,6 +9,7 @@ import { generateImageFromDream as runDreamToImageFlow, type GenerateImageFromDr
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserMetadata } from "@/lib/supabase/database.types";
 import { redirect } from 'next/navigation';
+import { headers } from "next/headers";
 
 // Helper function to convert Supabase dream row to application Dream type
 function fromSupabaseRow(row: DreamTableRow): Dream {
@@ -503,9 +504,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      // Supabase recommends using a relative path. It will be appended
-      // to the "Site URL" you configured in your Supabase dashboard.
-      redirectTo: '/auth/callback',
+      redirectTo: 'http://localhost:9002/auth/callback',
     },
   });
 

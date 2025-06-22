@@ -500,10 +500,11 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
 export async function signInWithGoogle() {
   const supabase = createSupabaseServerClient();
-  const origin = process.env.NEXT_PUBLIC_SITE_URL;
+  const origin = headers().get('origin');
 
   if (!origin) {
-    return redirect(`/auth?error=${encodeURIComponent("NEXT_PUBLIC_SITE_URL is not set in your environment variables.")}`);
+    // This is an unlikely scenario in a browser context but good for safety.
+    return redirect(`/auth?error=${encodeURIComponent("Could not determine request origin for Google sign-in.")}`);
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({

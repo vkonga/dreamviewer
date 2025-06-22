@@ -7,15 +7,7 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
-  const origin = process.env.NEXT_PUBLIC_SITE_URL;
-
-  if (!origin) {
-    // Cannot redirect to an error page without an origin, so return JSON
-    return NextResponse.json(
-      { error: "Internal Server Error: NEXT_PUBLIC_SITE_URL is not configured." },
-      { status: 500 }
-    );
-  }
+  const origin = requestUrl.origin;
 
   if (error) {
     // If there's an error from Google, redirect to the auth page with the error message

@@ -1,10 +1,3 @@
-
-// This is a placeholder file.
-// You should generate your Supabase database types and place them here.
-// You can generate them using the Supabase CLI:
-// supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/supabase/database.types.ts
-// Or from the Supabase dashboard: Project Settings -> API -> Generate types
-
 export type Json =
   | string
   | number
@@ -16,45 +9,55 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      // Define your tables here if you have any, e.g., profiles
-      // For now, we'll keep it minimal as auth uses its own tables.
-      // Example:
-      // profiles: {
-      //   Row: {
-      //     id: string
-      //     updated_at: string | null
-      //     username: string | null
-      //     full_name: string | null
-      //     avatar_url: string | null
-      //     website: string | null
-      //   }
-      //   Insert: {
-      //     id: string
-      //     updated_at?: string | null
-      //     username?: string | null
-      //     full_name?: string | null
-      //     avatar_url?: string | null
-      //     website?: string | null
-      //   }
-      //   Update: {
-      //     id?: string
-      //     updated_at?: string | null
-      //     username?: string | null
-      //     full_name?: string | null
-      //     avatar_url?: string | null
-      //     website?: string | null
-      //   }
-      //   Relationships: [
-      //     {
-      //       foreignKeyName: "profiles_id_fkey"
-      //       columns: ["id"]
-      //       referencedRelation: "users"
-      //       referencedColumns: ["id"]
-      //     }
-      //   ]
-      // }
-      // Ensure your user metadata (like username) is handled by Supabase Auth's user_metadata
-      // or by a 'profiles' table linked to auth.users.id.
+      dreams: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          date: string
+          description: string
+          tags: string[] | null
+          emotions: string[] | null
+          ai_interpretation: Json | null
+          generated_image_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          date: string
+          description: string
+          tags?: string[] | null
+          emotions?: string[] | null
+          ai_interpretation?: Json | null
+          generated_image_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          date?: string
+          description?: string
+          tags?: string[] | null
+          emotions?: string[] | null
+          ai_interpretation?: Json | null
+          generated_image_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dreams_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -74,5 +77,4 @@ export type Database = {
 // Helper type for user metadata, assuming 'username' is stored there.
 export type UserMetadata = {
   username?: string;
-  // Add other metadata fields if any
 };

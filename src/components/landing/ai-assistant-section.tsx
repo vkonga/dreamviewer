@@ -1,5 +1,4 @@
 
-import { Button } from "@/components/ui/button";
 import { BrainCircuit, ImageIcon, MessagesSquare, CalendarClock } from "lucide-react";
 
 export function AiAssistantSection() {
@@ -28,9 +27,6 @@ export function AiAssistantSection() {
             <h3 className="text-xl font-semibold mb-2">Dream Planner</h3>
           </div>
         </div>
-        <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg hover:shadow-secondary/30 transition-shadow">
-          Chat Now
-        </Button>
       </div>
     </section>
   );

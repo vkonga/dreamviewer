@@ -15,8 +15,8 @@ export function FamilyTreeSection() {
                     <li>Add family members as branches</li>
                     <li>Attach memories to each person</li>
                     <li>AI-curated timelines and albums</li>
+                    <li className="text-muted-foreground">Coming Soon!</li>
                 </ul>
-                <Button size="lg" variant="outline" className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">Notify Me When Live</Button>
             </div>
             <div className="lg:w-1/2 flex items-center justify-center p-8 min-h-[300px] md:min-h-[400px]">
               {/* Stylized Family Tree Visualization */}

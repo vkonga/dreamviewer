@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { User } from "lucide-react";
 
 export function FamilyTreeSection() {
   return (
@@ -18,8 +18,61 @@ export function FamilyTreeSection() {
                 </ul>
                 <Button size="lg" variant="outline" className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">Notify Me When Live</Button>
             </div>
-            <div className="lg:w-1/2">
-                <Image src="https://placehold.co/600x600.png" alt="Family Tree" width={600} height={600} className="rounded-full shadow-2xl" data-ai-hint="glowing tree"/>
+            <div className="lg:w-1/2 flex items-center justify-center p-8 min-h-[300px] md:min-h-[400px]">
+              {/* Stylized Family Tree Visualization */}
+              <div className="flex flex-col items-center justify-center gap-y-6 scale-90 md:scale-100">
+                {/* Grandparent */}
+                <div className="relative animate-fade-in" style={{animationDelay: "100ms"}}>
+                  <div className="p-3 bg-secondary/20 rounded-full border-2 border-secondary">
+                    <User className="h-10 w-10 text-secondary" />
+                  </div>
+                </div>
+
+                {/* Connector to Parents */}
+                <div className="h-10 w-px bg-border/70"></div>
+
+                {/* Parents */}
+                <div className="flex gap-x-20 relative">
+                  <div className="absolute inset-x-0 top-[-2.5rem] h-px bg-border/70"></div>
+                  <div className="absolute left-1/2 top-[-2.5rem] h-10 w-px bg-border/70"></div>
+
+                  <div className="relative flex flex-col items-center gap-y-6 animate-fade-in" style={{animationDelay: "300ms"}}>
+                    <div className="absolute top-0 h-10 w-px bg-border/70 -translate-y-full"></div>
+                    <div className="p-3 bg-primary/20 rounded-full border-2 border-primary">
+                      <User className="h-8 w-8 text-primary" />
+                    </div>
+                  </div>
+                  <div className="relative flex flex-col items-center gap-y-6 animate-fade-in" style={{animationDelay: "500ms"}}>
+                    <div className="absolute top-0 h-10 w-px bg-border/70 -translate-y-full"></div>
+                    <div className="p-3 bg-primary/20 rounded-full border-2 border-primary">
+                      <User className="h-8 w-8 text-primary" />
+                    </div>
+                  </div>
+                </div>
+                
+                 {/* Connector to Children */}
+                <div className="h-10 w-px bg-border/70"></div>
+
+
+                {/* Children */}
+                <div className="flex gap-x-12 relative">
+                   <div className="absolute inset-x-0 top-[-2.5rem] h-px bg-border/70"></div>
+                   <div className="absolute left-1/2 top-[-2.5rem] h-10 w-px bg-border/70"></div>
+                  <div className="relative animate-fade-in" style={{animationDelay: "700ms"}}>
+                     <div className="absolute top-0 h-10 w-px bg-border/70 -translate-y-full"></div>
+                    <div className="p-2 bg-muted rounded-full border-2 border-border">
+                        <User className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  </div>
+                   <div className="relative animate-fade-in" style={{animationDelay: "900ms"}}>
+                    <div className="absolute top-0 h-10 w-px bg-border/70 -translate-y-full"></div>
+                    <div className="p-2 bg-muted rounded-full border-2 border-border">
+                        <User className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
         </div>
     </section>

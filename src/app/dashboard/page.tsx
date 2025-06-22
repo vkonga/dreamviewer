@@ -1,3 +1,4 @@
+
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,12 +10,14 @@ import { format, isToday, isSameWeek, isSameMonth, isSameYear } from 'date-fns';
 import { redirect } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { InsightsWidgetSkeleton } from "@/components/dashboard/insights-widget-skeleton";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const InsightsWidget = dynamic(() => import('@/components/dashboard/insights-widget').then(mod => mod.InsightsWidget), {
   loading: () => <InsightsWidgetSkeleton />,
 });
 
-async function DreamFeed({ dreams }: { dreams: Dream[] }) {
+function DreamFeed({ dreams }: { dreams: Dream[] }) {
   const recentDreams = dreams.slice(0, 5); 
 
   if (recentDreams.length === 0) {
@@ -65,7 +68,7 @@ async function DreamFeed({ dreams }: { dreams: Dream[] }) {
 }
 
 
-async function DreamFrequencyWidget({ dreams }: { dreams: Dream[] }) {
+function DreamFrequencyWidget({ dreams }: { dreams: Dream[] }) {
   const now = new Date();
 
   const countToday = dreams.filter(dream => isToday(new Date(dream.date))).length;
@@ -116,6 +119,67 @@ async function DreamFrequencyWidget({ dreams }: { dreams: Dream[] }) {
 }
 
 
+// --- Optimization: New Data Fetching Component and Skeleton ---
+
+// This component fetches the slow 'dreams' data and renders the dependent UI.
+async function DashboardData() {
+  const dreams = await getDreams();
+  return (
+    <>
+      <div className="grid gap-8 md:grid-cols-2">
+        <DreamFeed dreams={dreams} />
+        <InsightsWidget dreams={dreams} />
+      </div>
+      <DreamFrequencyWidget dreams={dreams} />
+    </>
+  );
+}
+
+// This is the skeleton shown while DashboardData is loading.
+function DashboardDataSkeleton() {
+  return (
+    <>
+      <div className="grid gap-8 md:grid-cols-2">
+        {/* DreamFeed Skeleton */}
+        <Card className="bg-card/80 shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-5 w-64 mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </CardContent>
+           <CardFooter>
+            <Skeleton className="h-9 w-32" />
+          </CardFooter>
+        </Card>
+        {/* InsightsWidget uses its own skeleton via next/dynamic */}
+        <InsightsWidgetSkeleton />
+      </div>
+
+      {/* DreamFrequencyWidget Skeleton */}
+      <Card className="bg-card/80 shadow-lg">
+        <CardHeader>
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-5 w-72 mt-2" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+
+// --- Main Page Component ---
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
@@ -124,11 +188,11 @@ export default async function DashboardPage() {
   }
   
   const username = user.username || "Dreamer";
-  const dreams = await getDreams(); // Fetch dreams once for the page
 
   return (
     <AppShell>
       <div className="space-y-8">
+        {/* This part renders immediately, improving LCP */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="font-headline text-4xl font-bold">Welcome, {username}!</h1>
@@ -141,13 +205,12 @@ export default async function DashboardPage() {
           </Button>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
-          <DreamFeed dreams={dreams} />
-          <InsightsWidget dreams={dreams} />
-        </div>
+        {/* The data-heavy components are Suspended, allowing the page to stream */}
+        <Suspense fallback={<DashboardDataSkeleton />}>
+          <DashboardData />
+        </Suspense>
 
-        <DreamFrequencyWidget dreams={dreams} />
-
+        {/* This part is static and renders immediately */}
         <Card className="bg-card/80 shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline">Quick Actions</CardTitle>

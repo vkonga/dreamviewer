@@ -44,11 +44,11 @@ export function AppShell({ children }: AppShellProps) {
       setUser(session?.user ?? null);
       setLoadingAuth(false);
       if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+        router.refresh(); // Refresh to clear server component cache before redirect
         router.push('/auth');
       } else if (event === 'SIGNED_IN') {
-        // No automatic redirect here to avoid loops, let middleware or page handle it
+        router.refresh(); // Refresh to ensure server components have the new session
       }
-      router.refresh(); 
     });
 
     return () => {
@@ -101,4 +101,3 @@ export function AppShell({ children }: AppShellProps) {
     </SidebarProvider>
   );
 }
-

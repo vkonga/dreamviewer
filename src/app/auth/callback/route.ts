@@ -7,10 +7,19 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
+  const origin = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!origin) {
+    // Cannot redirect to an error page without an origin, so return JSON
+    return NextResponse.json(
+      { error: "Internal Server Error: NEXT_PUBLIC_SITE_URL is not configured." },
+      { status: 500 }
+    );
+  }
 
   if (error) {
-    // If there's an error, redirect to the auth page with an error message
-    return NextResponse.redirect(`${requestUrl.origin}/auth?error=${encodeURIComponent(error)}`);
+    // If there's an error from Google, redirect to the auth page with the error message
+    return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error)}`);
   }
 
   if (code) {
@@ -20,5 +29,5 @@ export async function GET(request: NextRequest) {
   }
 
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+  return NextResponse.redirect(`${origin}/dashboard`);
 }

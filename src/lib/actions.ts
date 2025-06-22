@@ -487,11 +487,10 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
 export async function signInWithGoogle() {
   const supabase = createSupabaseServerClient();
-  const origin = headers().get("origin");
+  const origin = process.env.NEXT_PUBLIC_SITE_URL;
 
   if (!origin) {
-    // This is a fallback, but origin should typically be present in web requests
-    return redirect(`/auth?error=${encodeURIComponent("Could not determine request origin.")}`);
+    return redirect(`/auth?error=${encodeURIComponent("NEXT_PUBLIC_SITE_URL is not set in your environment variables.")}`);
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -503,15 +502,12 @@ export async function signInWithGoogle() {
 
   if (error) {
     console.error("signInWithGoogle - Error:", error.message);
-    // Instead of returning, we can redirect to an error page or back to auth with a query param
     return redirect(`/auth?error=${encodeURIComponent(error.message)}`);
   }
 
   if (data.url) {
-    // Redirect to Google's sign-in page
     redirect(data.url);
   }
 
-  // This part is unlikely to be reached if there's no error, but it's a good fallback.
   return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }

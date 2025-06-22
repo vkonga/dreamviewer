@@ -483,7 +483,7 @@ export async function signInWithGoogle() {
 
   if (!origin) {
     // This is a fallback, but origin should typically be present in web requests
-    return { success: false, message: "Could not determine request origin." };
+    return redirect(`/auth?error=${encodeURIComponent("Could not determine request origin.")}`);
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({

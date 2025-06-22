@@ -64,10 +64,24 @@ function AuthForm() {
   } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
 
   useEffect(() => {
+    // Check for authentication errors from OAuth redirects
+    const error = searchParams.get("error");
+    if (error) {
+      toast({
+        title: "Authentication Error",
+        description: decodeURIComponent(error.replace(/\+/g, " ")),
+        variant: "destructive",
+      });
+      // Clean up the URL
+      router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, router, pathname, toast]);
+
+  useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         if (pathname === '/auth' || pathname === '/auth/') { 
-             router.push("/");
+             router.push("/dashboard");
         }
       }
     });
@@ -76,7 +90,7 @@ function AuthForm() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             if (pathname === '/auth' || pathname === '/auth/') {
-                 router.push("/");
+                 router.push("/dashboard");
             }
         }
     };
@@ -94,7 +108,7 @@ function AuthForm() {
     setIsLoading(false);
     if (result.success) {
       toast({ title: "Login Successful", description: result.message });
-      router.push("/"); 
+      router.push("/dashboard"); 
     } else {
       toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }

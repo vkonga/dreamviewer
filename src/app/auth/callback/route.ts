@@ -4,22 +4,27 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // This route is responsible for exchanging an auth code for a session.
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const error = requestUrl.searchParams.get('error');
-  const origin = requestUrl.origin;
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const error = searchParams.get('error');
 
   if (error) {
-    // If there's an error from Google, redirect to the auth page with the error message
+    // If there's an error from Google or the user denies access, redirect to the auth page with the error message
     return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error)}`);
   }
 
   if (code) {
     const supabase = createSupabaseServerClient();
     // Exchange the code for a session
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (exchangeError) {
+      console.error("Auth callback error:", exchangeError.message);
+      // If the exchange fails, redirect to auth page with a more specific error
+      return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent("Could not authenticate user. " + exchangeError.message)}`);
+    }
   }
 
-  // URL to redirect to after sign in process completes
+  // URL to redirect to after sign in process completes successfully
   return NextResponse.redirect(`${origin}/dashboard`);
 }

@@ -9,7 +9,6 @@ import { generateImageFromDream as runDreamToImageFlow, type GenerateImageFromDr
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserMetadata } from "@/lib/supabase/database.types";
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
 
 // Helper function to convert Supabase dream row to application Dream type
 function fromSupabaseRow(row: DreamTableRow): Dream {
@@ -500,22 +499,13 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
 export async function signInWithGoogle() {
   const supabase = createSupabaseServerClient();
-  const headersList = headers();
-  const host = headersList.get('host');
-  // In a production environment (like Firebase App Hosting), the protocol is reported as http,
-  // but the user is accessing the site via https. The 'x-forwarded-proto' header gives the correct protocol.
-  const protocol = headersList.get('x-forwarded-proto') || 'http';
-  
-  if (!host) {
-     return redirect(`/auth?error=${encodeURIComponent("Could not determine the host from the request headers.")}`);
-  }
-
-  const origin = `${protocol}://${host}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      // Supabase recommends using a relative path. It will be appended
+      // to the "Site URL" you configured in your Supabase dashboard.
+      redirectTo: '/auth/callback',
     },
   });
 
@@ -530,5 +520,3 @@ export async function signInWithGoogle() {
 
   return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }
-
-    

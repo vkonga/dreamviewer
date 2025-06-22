@@ -43,6 +43,7 @@ export function AppHeader() {
     const result = await logoutUser();
     if (result.success) {
       toast({ title: "Logged Out", description: result.message });
+      router.refresh();
       router.push("/auth"); 
     } else {
       toast({ title: "Logout Failed", description: result.message, variant: "destructive" });

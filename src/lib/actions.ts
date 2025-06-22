@@ -430,7 +430,6 @@ export async function logoutUser() {
     console.error("logoutUser - Error:", error.message);
     return { success: false, message: `Logout failed: ${error.message}` };
   }
-  revalidatePath('/', 'layout');
   console.log("logoutUser - User logged out successfully.");
   return { success: true, message: "Logged out successfully." };
 }

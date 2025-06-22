@@ -29,28 +29,38 @@ function MissingEnvVarsError() {
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
           <AlertTriangle className="w-16 h-16 text-destructive mb-6" />
           <h1 className="text-3xl font-bold text-destructive mb-4">Server Configuration Error</h1>
-          <p className="text-lg mb-2">The application is missing essential or invalid Supabase configuration.</p>
-          <p className="text-muted-foreground mb-6 max-w-md">
-            For this application to work, you must set the following environment variables in your hosting provider's settings (e.g., Google Cloud Secret Manager for Firebase App Hosting). Ensure the URL is a valid, full URL.
+          <p className="text-lg mb-2">The application is missing essential or invalid configuration.</p>
+          <p className="text-muted-foreground mb-6 max-w-xl">
+            For this application to work, you must set the following environment variables in your hosting provider's settings (e.g., Google Cloud Secret Manager for Firebase App Hosting).
           </p>
           <div className="bg-muted p-4 rounded-md text-left text-sm inline-block mb-6">
             <pre><code>
               NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co<br/>
-              NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+              NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key<br/>
+              GOOGLE_API_KEY=your-google-ai-api-key
             </code></pre>
           </div>
-          <p className="text-muted-foreground">
-            You can find these values in your Supabase project dashboard under Project Settings &gt; API.
-            After setting the secrets, you must **redeploy** your application.
+           <p className="text-muted-foreground max-w-xl">
+            You can find Supabase values in your project's API settings, and your Google AI key from Google AI Studio. After setting the secrets, you must **redeploy** your application for the changes to take effect.
           </p>
-          <a
-            href="https://supabase.com/dashboard"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Go to Supabase Dashboard
-          </a>
+           <div className="flex flex-col sm:flex-row gap-4 mt-6">
+             <a
+              href="https://supabase.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Go to Supabase
+            </a>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 border border-input text-base font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
+            >
+              Get Google API Key
+            </a>
+          </div>
         </div>
       </body>
     </html>
@@ -62,23 +72,26 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let isValidSupabaseConfig = false;
+  let isValidConfig = false;
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (supabaseUrl && supabaseUrl.trim() !== '' && supabaseAnonKey && supabaseAnonKey.trim() !== '') {
-      // Try to construct a URL object to validate the URL format.
-      // This will throw a TypeError if the URL is not valid.
+    const googleApiKey = process.env.GOOGLE_API_KEY;
+
+    if (
+      supabaseUrl && supabaseUrl.trim() !== '' &&
+      supabaseAnonKey && supabaseAnonKey.trim() !== '' &&
+      googleApiKey && googleApiKey.trim() !== ''
+    ) {
       new URL(supabaseUrl);
-      isValidSupabaseConfig = true;
+      isValidConfig = true;
     }
   } catch (error) {
-    // If new URL() fails, the config is invalid.
-    console.error("RootLayout Supabase config validation failed:", error);
-    isValidSupabaseConfig = false;
+    console.error("RootLayout config validation failed:", error);
+    isValidConfig = false;
   }
 
-  if (!isValidSupabaseConfig) {
+  if (!isValidConfig) {
     return <MissingEnvVarsError />;
   }
 

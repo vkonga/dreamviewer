@@ -5,13 +5,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // This route is responsible for exchanging an auth code for a session.
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
-  const error = searchParams.get('error');
-
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const error = requestUrl.searchParams.get('error');
+  
   if (error) {
     // If there's an error from Google or the user denies access, redirect to the auth page with the error message
-    return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error)}`);
+    const errorMessage = "Authentication failed. " + error;
+    return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(errorMessage)}`, request.url));
   }
 
   if (code) {
@@ -38,10 +39,12 @@ export async function GET(request: NextRequest) {
     if (exchangeError) {
       console.error("Auth callback error:", exchangeError.message);
       // If the exchange fails, redirect to auth page with a more specific error
-      return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent("Could not authenticate user. " + exchangeError.message)}`);
+      const errorMessage = "Could not authenticate user. " + exchangeError.message;
+      return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(errorMessage)}`, request.url));
     }
   }
 
   // URL to redirect to after sign in process completes successfully
-  return NextResponse.redirect(`${origin}/dashboard`);
+  // Reconstructing the URL this way is more robust than using `origin`.
+  return NextResponse.redirect(new URL('/dashboard', request.url));
 }

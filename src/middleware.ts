@@ -79,9 +79,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // If user is authenticated and tries to access /auth, redirect to / (home page)
+  // If user is authenticated and tries to access /auth, redirect to /dashboard
   if (session && pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return response

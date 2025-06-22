@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDreams } from "@/lib/actions";
 import Link from "next/link";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import type { Dream } from "@/lib/definitions";
 import { format } from 'date-fns';
-import { Input } from "@/components/ui/input"; 
 import { Separator } from "@/components/ui/separator";
-import React from "react"; // Import React for React.memo
+import React from "react";
+import { DreamSearchBar } from "@/components/dreams/search-bar";
 
 const DreamListItem = React.memo(function DreamListItem({ dream }: { dream: Dream }) {
   return (
@@ -46,8 +46,15 @@ const DreamListItem = React.memo(function DreamListItem({ dream }: { dream: Drea
   );
 });
 
-export default async function DreamsListPage() {
-  const dreams = await getDreams();
+export default async function DreamsListPage({
+  searchParams,
+}: {
+  searchParams?: {
+    query?: string;
+  };
+}) {
+  const query = searchParams?.query || '';
+  const dreams = await getDreams(query);
 
   return (
     <AppShell>
@@ -64,10 +71,14 @@ export default async function DreamsListPage() {
           </Button>
         </div>
         
+        <div className="flex justify-start">
+          <DreamSearchBar />
+        </div>
+        
         <Separator />
 
         {dreams.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch"> {/* Added items-stretch for equal height cards in a row */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
             {dreams.map((dream) => (
               <DreamListItem key={dream.id} dream={dream} />
             ))}
@@ -75,8 +86,10 @@ export default async function DreamsListPage() {
         ) : (
           <div className="text-center py-12">
             <Card className="max-w-md mx-auto p-8 bg-card/50">
-              <h2 className="text-2xl font-semibold mb-3">Your Journal is Empty</h2>
-              <p className="text-muted-foreground mb-6">Start by logging your first dream to see it appear here.</p>
+              <h2 className="text-2xl font-semibold mb-3">{query ? 'No Dreams Found' : 'Your Journal is Empty'}</h2>
+              <p className="text-muted-foreground mb-6">
+                {query ? `Your search for "${query}" did not match any dreams.` : 'Start by logging your first dream to see it appear here.'}
+              </p>
               <Button asChild size="lg">
                 <Link href="/dreams/new"><PlusCircle className="mr-2 h-5 w-5" />Log Your First Dream</Link>
               </Button>

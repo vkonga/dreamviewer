@@ -34,7 +34,7 @@ const DreamFormSchema = z.object({
 });
 
 // Dream actions using Supabase
-export async function getDreams(): Promise<Dream[]> {
+export async function getDreams(query?: string): Promise<Dream[]> {
   const supabase = createSupabaseServerClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -47,13 +47,21 @@ export async function getDreams(): Promise<Dream[]> {
     return [];
   }
 
-  console.log(`getDreams - Attempting to fetch dreams for user: ${user.id} (email: ${user.email})`);
+  console.log(`getDreams - Attempting to fetch dreams for user: ${user.id} (query: '${query || ''}')`);
 
-  const { data, error } = await supabase
+  let supabaseQuery = supabase
     .from("dreams")
     .select("*")
-    .eq("user_id", user.id)
-    .order("date", { ascending: false });
+    .eq("user_id", user.id);
+
+  if (query) {
+    // Use .or() to search in title and description. The query format is specific.
+    // We search for the query string appearing anywhere in the title or description, case-insensitive.
+    supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+  }
+
+  const { data, error } = await supabaseQuery.order("date", { ascending: false });
+
 
   if (error) {
     console.error("getDreams - Error fetching dreams from Supabase:", JSON.stringify(error, null, 2));

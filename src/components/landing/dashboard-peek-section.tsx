@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
+import { DashboardPreview } from "./dashboard-preview";
 
 export function DashboardPeekSection() {
   return (
@@ -11,9 +11,7 @@ export function DashboardPeekSection() {
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-12">
           All your generated images, ideas, assistant chats, and progress in one calming control center.
         </p>
-        <div className="max-w-5xl mx-auto p-4 md:p-8 rounded-xl border bg-muted/30 shadow-2xl">
-          <Image src="https://placehold.co/1200x600.png" alt="Dashboard preview" width={1200} height={600} className="rounded-lg" data-ai-hint="dashboard ui"/>
-        </div>
+        <DashboardPreview />
          <Button size="lg" asChild className="mt-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-primary/30">
             <Link href="/dashboard">Launch Dashboard</Link>
           </Button>

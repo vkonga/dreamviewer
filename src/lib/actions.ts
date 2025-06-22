@@ -504,7 +504,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: 'http://localhost:9002/auth/callback',
+      redirectTo: 'https://6000-firebase-studio-1750246191636.cluster-6dx7corvpngoivimwvvljgokdw.cloudworkstations.dev/auth/callback',
     },
   });
 
@@ -519,3 +519,5 @@ export async function signInWithGoogle() {
 
   return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }
+
+    

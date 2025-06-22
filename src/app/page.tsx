@@ -14,11 +14,11 @@ export default function LandingPage() {
           {/* Background Image */}
           <Image
             src="https://placehold.co/1920x1080.png"
-            alt="A surreal dreamscape with floating islands, glowing blue crystals, and a sparkling river under a pink sky"
+            alt="A surreal cosmic dreamscape with a crescent moon over a tranquil sea and glowing clouds"
             layout="fill"
             objectFit="cover"
             className="z-0"
-            data-ai-hint="dreamscape crystals"
+            data-ai-hint="crescent moon sea"
             priority // Load this image first
           />
           {/* Dark overlay for text readability */}

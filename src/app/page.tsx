@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AppHeader } from "@/components/layout/header";
-import Image from "next/image";
 
 export default function LandingPage() {
   return (
@@ -9,16 +8,7 @@ export default function LandingPage() {
       <AppHeader />
       <main className="flex-grow mt-[-4rem]"> {/* Negative margin to pull content behind the 64px (h-16) header */}
         {/* Hero Section */}
-        <section className="relative h-screen flex items-center justify-center text-center text-white">
-          {/* Background Image */}
-          <Image
-            src="/hero-background.png"
-            alt="A person standing on a rock looking up at a vast cosmic sky with swirling galaxies and nebulae"
-            layout="fill"
-            objectFit="cover"
-            className="z-0"
-            priority // Load this image first
-          />
+        <section className="relative h-screen flex items-center justify-center text-center text-white hero-background">
           {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-black/40 z-10" />
 

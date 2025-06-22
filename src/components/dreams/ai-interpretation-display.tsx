@@ -4,37 +4,13 @@
 import type { AIInterpretation } from "@/lib/definitions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Brain, Lightbulb } from "lucide-react";
+import { Brain, Lightbulb } from "lucide-react";
 
 interface AIInterpretationDisplayProps {
-  interpretation?: AIInterpretation;
-  isLoading?: boolean;
+  interpretation: AIInterpretation;
 }
 
-export function AIInterpretationDisplay({ interpretation, isLoading }: AIInterpretationDisplayProps) {
-  if (isLoading) {
-    return (
-      <Card className="mt-6 bg-muted/30 shadow-inner animate-pulse">
-        <CardHeader>
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles className="h-6 w-6 animate-ping duration-1000" />
-            <CardTitle className="font-headline text-2xl">AI Analyzing Your Dream...</CardTitle>
-          </div>
-          <CardDescription>Please wait while our AI uncovers the secrets of your dream.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="h-4 bg-foreground/10 rounded w-3/4"></div>
-          <div className="h-4 bg-foreground/10 rounded w-1/2"></div>
-          <div className="h-4 bg-foreground/10 rounded w-full"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!interpretation) {
-    return null; // Or a message like "No interpretation available yet."
-  }
-
+export function AIInterpretationDisplay({ interpretation }: AIInterpretationDisplayProps) {
   return (
     <Card className="mt-6 bg-accent/10 shadow-lg border-accent/30">
       <CardHeader>

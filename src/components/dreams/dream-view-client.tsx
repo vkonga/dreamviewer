@@ -2,12 +2,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { interpretDream, deleteDream, generateDreamImage } from "@/lib/actions";
 import type { Dream } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AIInterpretationDisplay } from "@/components/dreams/ai-interpretation-display";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,6 +26,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { AIInterpretationSkeleton } from "./ai-interpretation-skeleton";
+
+const AIInterpretationDisplay = dynamic(
+  () => import('@/components/dreams/ai-interpretation-display').then(mod => mod.AIInterpretationDisplay),
+  { loading: () => <AIInterpretationSkeleton /> }
+);
 
 export function DreamViewClient({ initialDream }: { initialDream: Dream }) {
   const [dream, setDream] = useState<Dream>(initialDream);
@@ -149,7 +155,9 @@ export function DreamViewClient({ initialDream }: { initialDream: Dream }) {
       <Separator className="my-8" />
 
       <div className="space-y-6">
-        {dream.ai_interpretation ? (
+        {isAnalyzing ? (
+          <AIInterpretationSkeleton />
+        ) : dream.ai_interpretation ? (
           <AIInterpretationDisplay interpretation={dream.ai_interpretation} />
         ) : (
           <div className="text-center p-6 border border-dashed rounded-lg bg-muted/30">

@@ -8,7 +8,13 @@ import { PlusCircle, ListChecks, Edit3, Sun, CalendarDays, Calendar, Layers } fr
 import type { Dream } from "@/lib/definitions";
 import { format, isToday, isSameWeek, isSameMonth, isSameYear } from 'date-fns';
 import { redirect } from "next/navigation";
-import { InsightsWidget } from "@/components/dashboard/insights-widget";
+import dynamic from 'next/dynamic';
+import { InsightsWidgetSkeleton } from "@/components/dashboard/insights-widget-skeleton";
+
+const InsightsWidget = dynamic(() => import('@/components/dashboard/insights-widget').then(mod => mod.InsightsWidget), {
+  ssr: false,
+  loading: () => <InsightsWidgetSkeleton />,
+});
 
 async function DreamFeed({ dreams }: { dreams: Dream[] }) {
   const recentDreams = dreams.slice(0, 5); 

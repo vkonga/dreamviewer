@@ -61,9 +61,7 @@ async function DreamFeed({ dreams }: { dreams: Dream[] }) {
 }
 
 
-async function DreamFrequencyWidget() {
-  // This widget can fetch its own data as it's a server component.
-  const dreams = await getDreams();
+async function DreamFrequencyWidget({ dreams }: { dreams: Dream[] }) {
   const now = new Date();
 
   const countToday = dreams.filter(dream => isToday(new Date(dream.date))).length;
@@ -140,11 +138,11 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
-          <DreamFeed dreams={dreams} /> {/* Pass dreams data */}
-          <InsightsWidget dreams={dreams} /> {/* Pass dreams data */}
+          <DreamFeed dreams={dreams} />
+          <InsightsWidget dreams={dreams} />
         </div>
 
-        <DreamFrequencyWidget />
+        <DreamFrequencyWidget dreams={dreams} />
 
         <Card className="bg-card/80 shadow-lg">
           <CardHeader>

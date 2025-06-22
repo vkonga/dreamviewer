@@ -25,7 +25,7 @@ export function HeroSection() {
             <Link href="/dashboard">Launch Dashboard</Link>
           </Button>
           <Button size="lg" variant="outline" asChild className="bg-background/20 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm shadow-lg transition-all hover:scale-105 px-8 py-6 text-lg">
-            <a href="#ai-assistant">Try Dream Assistant</a>
+            <a href="#ai-assistant">Learn More</a>
           </Button>
         </div>
       </div>

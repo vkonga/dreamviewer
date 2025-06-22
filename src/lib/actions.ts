@@ -44,7 +44,7 @@ export async function getDreams(query?: string): Promise<Dream[]> {
   }
   if (!user) {
     console.warn("getDreams - No user session found when trying to fetch dreams.");
-    return [];
+    redirect('/auth');
   }
 
   console.log(`getDreams - Attempting to fetch dreams for user: ${user.id} (query: '${query || ''}')`);
@@ -60,7 +60,10 @@ export async function getDreams(query?: string): Promise<Dream[]> {
     supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
   }
 
-  const { data, error } = await supabaseQuery.order("date", { ascending: false });
+  // Limit query to the 24 most recent dreams for performance.
+  const { data, error } = await supabaseQuery
+    .order("date", { ascending: false })
+    .limit(24);
 
 
   if (error) {
@@ -83,7 +86,7 @@ export async function getDreamById(id: string): Promise<Dream | undefined> {
   }
   if (!user) {
     console.warn(`getDreamById(${id}) - No user session found.`);
-    return undefined;
+    redirect('/auth');
   }
 
   console.log(`getDreamById(${id}) - Attempting to fetch for user: ${user.id}`);
@@ -113,7 +116,7 @@ export async function createDream(values: DreamFormValues) {
   }
   if (!user) {
     console.warn("createDream - No user session found.");
-    return { message: "User not authenticated.", errors: { auth: "User not authenticated." } };
+    redirect('/auth');
   }
 
   const validatedFields = DreamFormSchema.safeParse(values);
@@ -157,7 +160,7 @@ export async function createDream(values: DreamFormValues) {
   console.log(`createDream - Dream created successfully with id: ${insertedDream.id}`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
-  return { message: "Dream created successfully.", dreamId: insertedDream.id, dream: fromSupabaseRow(insertedDream as DreamTableRow) };
+  redirect(`/dreams/${insertedDream.id}`);
 }
 
 export async function updateDream(id: string, values: DreamFormValues) {
@@ -170,7 +173,7 @@ export async function updateDream(id: string, values: DreamFormValues) {
   }
   if (!user) {
     console.warn(`updateDream(${id}) - No user session found.`);
-    return { message: "User not authenticated." };
+    redirect('/auth');
   }
 
   const validatedFields = DreamFormSchema.safeParse(values);
@@ -215,7 +218,7 @@ export async function updateDream(id: string, values: DreamFormValues) {
   revalidatePath(`/dreams/${id}`);
   revalidatePath(`/dreams/${id}/edit`);
   revalidatePath("/dashboard");
-  return { message: "Dream updated successfully.", dream: fromSupabaseRow(updatedDream as DreamTableRow) };
+  redirect(`/dreams/${id}`);
 }
 
 export async function deleteDream(id: string) {
@@ -228,7 +231,7 @@ export async function deleteDream(id: string) {
   }
   if (!user) {
     console.warn(`deleteDream(${id}) - No user session found.`);
-    return { message: "User not authenticated." };
+    redirect('/auth');
   }
 
   console.log(`deleteDream(${id}) - Attempting to delete for user: ${user.id}`);
@@ -251,7 +254,8 @@ export async function deleteDream(id: string) {
   console.log(`deleteDream(${id}) - Dream deleted successfully.`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
-  return { message: "Dream deleted successfully." };
+  // Don't redirect here, let the client-side handle it after a successful toast.
+  return { success: true, message: "Dream deleted successfully." };
 }
 
 export async function interpretDream(dreamId: string): Promise<{ interpretation?: AIInterpretation, message: string, error?: string }> {
@@ -264,7 +268,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
   }
   if (!user) {
     console.warn(`interpretDream(${dreamId}) - No user session found.`);
-    return { message: "User not authenticated.", error: "User not authenticated." };
+    redirect('/auth');
   }
 
   const dream = await getDreamById(dreamId);
@@ -308,7 +312,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
 
   } catch (error) {
     console.error(`interpretDream(${dreamId}) - AI interpretation flow error:`, error);
-    return { message: "Failed to interpret dream.", error: (error as Error).message };
+    return { message: `Failed to interpret dream: ${(error as Error).message}`, error: (error as Error).message };
   }
 }
 
@@ -322,7 +326,7 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
   }
   if (!user) {
     console.warn(`generateDreamImage(${dreamId}) - No user session found.`);
-    return { message: "User not authenticated.", error: "User not authenticated." };
+    redirect('/auth');
   }
 
   const dream = await getDreamById(dreamId);
@@ -352,7 +356,7 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
 
   } catch (error) {
     console.error(`generateDreamImage(${dreamId}) - AI image generation flow error:`, error);
-    return { message: "Failed to generate dream image.", error: (error as Error).message };
+    return { message: `Failed to generate dream image: ${(error as Error).message}`, error: (error as Error).message };
   }
 }
 
@@ -370,10 +374,7 @@ export async function loginUser(data: { email: string; password_DO_NOT_USE: stri
     return { success: false, message: error.message };
   }
   revalidatePath('/', 'layout');
-  revalidatePath('/dashboard');
-  revalidatePath('/dreams');
-  console.log(`loginUser - User ${data.email} logged in successfully.`);
-  return { success: true, message: "Logged in successfully!" };
+  redirect('/dashboard');
 }
 
 export async function registerUser(data: { email: string; password_DO_NOT_USE: string; username: string }) {
@@ -394,7 +395,7 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
   }
   if (signUpData.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
     console.warn("registerUser - User already exists or an issue occurred (no new identity).");
-    return { success: false, message: "User already exists or another issue occurred. If you haven't confirmed your email, please check your inbox." };
+    return { success: false, message: "User with this email already exists." };
   }
 
   let message = "Registration successful! ";
@@ -511,3 +512,5 @@ export async function signInWithGoogle() {
 
   return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }
+
+    

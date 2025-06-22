@@ -1,19 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center text-center text-white">
-      <Image
-        src="https://placehold.co/1920x1080.png"
-        alt="A vibrant, abstract representation of a dreamscape."
-        fill
-        className="object-cover"
-        priority
-        data-ai-hint="starry night"
-      />
+    <section className="relative min-h-screen flex items-center justify-center text-center text-white bg-slate-900 overflow-hidden">
+      <div id="stars" className="absolute top-0 left-0 w-full h-full" />
+      <div id="stars2" className="absolute top-0 left-0 w-full h-full" />
+      <div id="stars3" className="absolute top-0 left-0 w-full h-full" />
+      
       <div className="absolute inset-0 bg-slate-900/60" />
       <div className="relative z-10 container flex flex-col items-center animate-fade-in px-4">
         <h1 className="font-headline text-5xl md:text-7xl font-bold mb-4 flex items-center gap-4">

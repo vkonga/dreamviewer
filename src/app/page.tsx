@@ -13,11 +13,11 @@ export default function LandingPage() {
           {/* Background Image */}
           <Image
             src="https://placehold.co/1920x1080.png"
-            alt="A surreal cosmic dreamscape with a crescent moon over a tranquil sea and glowing clouds"
+            alt="A person standing on a rock looking up at a vast cosmic sky with swirling galaxies and nebulae"
             layout="fill"
             objectFit="cover"
             className="z-0"
-            data-ai-hint="crescent moon sea"
+            data-ai-hint="cosmic dreamer"
             priority // Load this image first
           />
           {/* Dark overlay for text readability */}

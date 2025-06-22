@@ -10,6 +10,7 @@ import { createSupabaseClientComponentClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { logoutUser } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -49,13 +50,22 @@ export function AppHeader() {
   };
 
   const isAuthPage = pathname === '/auth' || pathname === '/auth/';
+  const isHomePage = pathname === '/';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={cn(
+      "sticky top-0 z-50 w-full border-b",
+      isHomePage 
+        ? "bg-transparent border-transparent" 
+        : "border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    )}>
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
         <Link href="/" className="flex items-center space-x-2" aria-label="DreamView Home">
-          <MoonStar className="h-7 w-7 text-primary" />
-          <span className="font-headline text-2xl font-bold text-foreground">DreamView</span>
+          <MoonStar className={cn("h-7 w-7", isHomePage ? "text-white" : "text-primary")} />
+          <span className={cn(
+            "font-headline text-2xl font-bold",
+            isHomePage ? "text-white" : "text-foreground"
+          )}>DreamView</span>
         </Link>
         
         {!isAuthPage && (
@@ -64,7 +74,7 @@ export function AppHeader() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             ) : user ? (
               <>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className={isHomePage ? "text-white hover:bg-white/10 hover:text-white" : ""}>
                   <Link href="/dashboard">
                     <LayoutDashboardIcon className="mr-2 h-4 w-4" /> Dashboard
                   </Link>
@@ -72,18 +82,19 @@ export function AppHeader() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
+                   className={isHomePage ? "text-white border-white/50 bg-transparent hover:bg-white/10 hover:text-white" : ""}
                 >
                   <LogOutIcon className="mr-2 h-4 w-4" /> Log Out
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className={isHomePage ? "text-white hover:bg-white/10 hover:text-white" : ""}>
                   <Link href="/auth">
                     <LogIn className="mr-2 h-4 w-4" /> Login
                   </Link>
                 </Button>
-                <Button asChild>
+                <Button asChild variant={isHomePage ? "outline" : "default"} className={isHomePage ? "text-white border-white/50 bg-white/10 hover:bg-white/20" : ""}>
                   <Link href="/auth?mode=signup">
                     <UserPlus className="mr-2 h-4 w-4" /> Sign Up
                   </Link>

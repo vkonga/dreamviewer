@@ -4,52 +4,51 @@
 
 @layer base {
   :root {
-    --background: 340 30% 20%; /* Dark Pink/Plum */
-    --foreground: 340 50% 95%; /* Light Pink/Off-white */
+    --background: 222 47% 11%; /* Dark Slate Blue */
+    --foreground: 210 40% 98%; /* Almost White */
 
-    --muted: 340 30% 30%; /* Muted pink variant */
-    --muted-foreground: 340 30% 75%; /* Lighter pink for muted text */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --popover: 340 30% 15%; /* Darker pink for popovers */
-    --popover-foreground: 340 50% 95%; /* Light pink for popover text */
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    --card: 340 30% 25%; /* Pink variant for card backgrounds */
-    --card-foreground: 340 50% 95%; /* Light pink for card text */
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
 
-    --border: 340 20% 40%; /* Pink-gray for borders */
-    --input: 340 20% 35%; /* Pink-gray for input backgrounds */
+    --border: 217 33% 27%;
+    --input: 217 33% 22%;
 
-    --primary: 340 90% 70%; /* Bright Pink */
-    --primary-foreground: 340 50% 10%; /* Dark Pink for text on primary */
+    --primary: 200 71% 78%; /* Cloud Blue */
+    --primary-foreground: 222 47% 11%; /* Dark Slate Blue for text on primary */
 
-    --secondary: 340 60% 80%; /* Lighter, less saturated pink */
-    --secondary-foreground: 340 30% 15%; /* Dark pink for text on secondary */
+    --secondary: 255 44% 84%; /* Dream Purple */
+    --secondary-foreground: 222 47% 11%; /* Dark Slate Blue for text on secondary */
 
-    --accent: 340 95% 75%; /* Vibrant Pink */
-    --accent-foreground: 340 50% 15%; /* Dark pink for text on accent */
+    --accent: 255 44% 84%; /* Dream Purple */
+    --accent-foreground: 222 47% 11%; /* Dark Slate Blue for text on accent */
 
-    --destructive: 0 70% 60%; /* A suitable red for destructive actions */
-    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 210 40% 98%;
 
-    --ring: 340 90% 70%; /* Bright Pink for focus rings */
+    --ring: 200 71% 78%;
 
     --radius: 0.5rem;
 
-    /* Sidebar specific colors - adjusted for the new theme */
-    --sidebar-background: 340 30% 18%; /* Darker Pink for sidebar */
-    --sidebar-foreground: 340 40% 90%; /* Light Pink for sidebar text */
-    --sidebar-primary: 340 90% 70%; /* Bright Pink for active/primary items in sidebar */
-    --sidebar-primary-foreground: 340 50% 10%; /* Dark Pink for text on sidebar primary */
-    --sidebar-accent: 340 30% 28%; /* Pink variant for hover/accent in sidebar */
-    --sidebar-accent-foreground: 340 50% 95%; /* Light Pink for text on sidebar accent */
-    --sidebar-border: 340 20% 35%; /* Border color within sidebar */
-    --sidebar-ring: 340 90% 70%; /* Bright Pink for focus rings in sidebar */
+    --chart-1: 200 71% 78%;
+    --chart-2: 255 44% 84%;
+    --chart-3: 210 40% 98%;
+    --chart-4: 215 20% 65%;
+    --chart-5: 217 33% 17%;
 
-    --chart-1: 340 80% 70%; /* Pink shade 1 */
-    --chart-2: 330 70% 75%; /* Pink shade 2 */
-    --chart-3: 350 80% 75%; /* Pink shade 3 */
-    --chart-4: 320 70% 70%; /* Pink shade 4 (more purple) */
-    --chart-5: 340 20% 80%; /* Light grayish pink */
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 200 71% 78%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 27%;
+    --sidebar-ring: 200 71% 78%;
   }
 }
 
@@ -72,7 +71,7 @@
     text-wrap: balance;
   }
   .hero-background {
-    background-image: url('/bg.png');
+    background-image: linear-gradient(rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.7)), url('/bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

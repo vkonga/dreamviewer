@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Literata', 'serif'],
-        headline: ['Literata', 'serif'],
+        body: ['Poppins', 'sans-serif'],
+        headline: ['"Cinzel Decorative"', 'serif'],
         code: ['monospace'],
       },
       colors: {

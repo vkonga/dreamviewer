@@ -4,14 +4,13 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AlertTriangle } from 'lucide-react';
 
-const dreamViewFaviconSvgDataUri = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%23283593%22/><path d=%22M21 7 A10 10 0 1 0 21 25 A7 7 0 1 1 21 7 Z%22 fill=%22%23D1C4E9%22/><path d=%22M23 7 L23 9 M22 8 L24 8%22 stroke=%22%23D1C4E9%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/></svg>";
+const dreamViewFaviconSvgDataUri = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%230f172a%22/><path d=%22M21 7 A10 10 0 1 0 21 25 A7 7 0 1 1 21 7 Z%22 fill=%22%23d1c4e9%22/><path d=%22M23 7 L23 9 M22 8 L24 8%22 stroke=%22%23a0d8ef%22 stroke-width=%221.5%22 stroke-linecap=%22round%22/></svg>";
 
 export const metadata: Metadata = {
-  title: 'DreamView - Your Personal Dream Journal',
-  description: 'Record, track, and analyze your dreams with AI-powered insights.',
+  title: 'Dream View - Your Dreams, Visualized.',
+  description: 'Imagine, Create, and Connect — with the power of AI and a touch of magic.',
   icons: {
     icon: [
-      // Using an array of IconDescriptor for more explicit definition
       { url: dreamViewFaviconSvgDataUri, type: 'image/svg+xml', sizes: 'any' }
     ],
   },
@@ -24,7 +23,7 @@ function MissingEnvVarsError() {
         <title>Configuration Error - DreamView</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-foreground">
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
@@ -80,7 +79,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
         {children}

@@ -54,7 +54,7 @@ export function AppHeader() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-50 w-full border-b",
+      "fixed top-0 z-50 w-full border-b",
       isHomePage 
         ? "bg-transparent border-transparent" 
         : "border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -65,7 +65,7 @@ export function AppHeader() {
           <span className={cn(
             "font-headline text-2xl font-bold",
             isHomePage ? "text-white" : "text-foreground"
-          )}>DreamView</span>
+          )}>Dream View</span>
         </Link>
         
         {!isAuthPage && (
@@ -82,7 +82,7 @@ export function AppHeader() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                   className={isHomePage ? "text-white border-white/50 bg-transparent hover:bg-white/10 hover:text-white" : ""}
+                   className={cn("border-white/50 bg-transparent hover:bg-white/10 hover:text-white", isHomePage ? "text-white" : "text-foreground")}
                 >
                   <LogOutIcon className="mr-2 h-4 w-4" /> Log Out
                 </Button>
@@ -94,7 +94,7 @@ export function AppHeader() {
                     <LogIn className="mr-2 h-4 w-4" /> Login
                   </Link>
                 </Button>
-                <Button asChild variant={isHomePage ? "outline" : "default"} className={isHomePage ? "text-white border-white/50 bg-white/10 hover:bg-white/20" : ""}>
+                <Button asChild variant={isHomePage ? "outline" : "default"} className={cn("border-white/50 bg-white/10 hover:bg-white/20", isHomePage ? "text-white" : "")}>
                   <Link href="/auth?mode=signup">
                     <UserPlus className="mr-2 h-4 w-4" /> Sign Up
                   </Link>

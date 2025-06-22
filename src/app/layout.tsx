@@ -37,11 +37,11 @@ function MissingEnvVarsError() {
             <pre><code>
               NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co<br/>
               NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key<br/>
-              GOOGLE_API_KEY=your-google-ai-api-key
+              GOOGLE_API_KEY=your-google-gemini-api-key
             </code></pre>
           </div>
            <p className="text-muted-foreground max-w-xl">
-            You can find Supabase values in your project's API settings, and your Google AI key from Google AI Studio. After setting the secrets, you must **redeploy** your application for the changes to take effect.
+            You can find Supabase values in your project's API settings. The Google API key enables the AI Assistant and Image Generation features powered by Gemini. You can get your key from Google AI Studio. After setting the secrets, you must **redeploy** your application.
           </p>
            <div className="flex flex-col sm:flex-row gap-4 mt-6">
              <a
@@ -58,7 +58,7 @@ function MissingEnvVarsError() {
               rel="noopener noreferrer"
               className="inline-flex items-center px-6 py-3 border border-input text-base font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
             >
-              Get Google API Key
+              Get Google Gemini Key
             </a>
           </div>
         </div>

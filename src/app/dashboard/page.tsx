@@ -1,4 +1,3 @@
-
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,6 @@ import dynamic from 'next/dynamic';
 import { InsightsWidgetSkeleton } from "@/components/dashboard/insights-widget-skeleton";
 
 const InsightsWidget = dynamic(() => import('@/components/dashboard/insights-widget').then(mod => mod.InsightsWidget), {
-  ssr: false,
   loading: () => <InsightsWidgetSkeleton />,
 });
 

@@ -1,10 +1,15 @@
-
 import { AppShell } from "@/components/layout/app-shell";
 import { getDreamById } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import { DreamViewClient } from "@/components/dreams/dream-view-client";
 
-export default async function DreamViewPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function DreamViewPage({ params }: PageProps) {
   const dream = await getDreamById(params.id);
 
   if (!dream) {

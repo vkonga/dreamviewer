@@ -11,7 +11,7 @@ import { AppHeader } from "@/components/layout/header";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { loginUser, registerUser } from "@/lib/actions";
+import { loginUser, registerUser, signInWithGoogle } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -29,6 +29,13 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 type RegisterFormData = z.infer<typeof registerSchema>;
+
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.36 1.67-4.04 1.67-3.27 0-5.93-2.66-5.93-5.93s2.66-5.93 5.93-5.93c1.7 0 3.12.57 4.22 1.62l2.5-2.5C18.43 3.17 15.68 2 12.48 2c-5.74 0-10.44 4.6-10.44 10.32s4.7 10.32 10.44 10.32c5.66 0 10.2-3.83 10.2-10.14 0-.66-.07-1.25-.16-1.84H12.48z" fill="currentColor"/>
+  </svg>
+);
+
 
 function AuthForm() {
   const router = useRouter();
@@ -59,16 +66,12 @@ function AuthForm() {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // If a user becomes authenticated while on this page (e.g. different tab login)
-        // redirect them away from /auth to the home page.
-        // Middleware also handles redirecting already authenticated users. This is a client-side safeguard.
         if (pathname === '/auth' || pathname === '/auth/') { 
              router.push("/");
         }
       }
     });
 
-    // Check initial auth state: if user lands on /auth but is already logged in, redirect to home page.
     const checkInitialSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -91,8 +94,7 @@ function AuthForm() {
     setIsLoading(false);
     if (result.success) {
       toast({ title: "Login Successful", description: result.message });
-      router.push("/"); // Redirect to home page on successful login
-      // router.refresh(); // Removed: Let AppShell/AppHeader handle refresh via onAuthStateChange
+      router.push("/"); 
     } else {
       toast({ title: "Login Failed", description: result.message, variant: "destructive" });
     }
@@ -130,32 +132,50 @@ function AuthForm() {
                 <CardTitle className="font-headline text-3xl">Welcome Back</CardTitle>
                 <CardDescription>Enter your credentials to access your dream journal.</CardDescription>
               </CardHeader>
-              <form onSubmit={handleLoginSubmit(onLogin)}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input id="login-email" type="email" placeholder="you@example.com" {...registerLogin("email")} />
-                    {loginErrors.email && <p className="text-sm text-destructive">{loginErrors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <div className="relative">
-                      <Input id="login-password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...registerLogin("password")} />
-                      <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {loginErrors.password && <p className="text-sm text-destructive">{loginErrors.password.message}</p>}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col items-stretch gap-3">
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Login
+              <CardContent>
+                <form action={signInWithGoogle}>
+                  <Button variant="outline" className="w-full" type="submit">
+                    <GoogleIcon className="mr-2 h-4 w-4" />
+                    Sign in with Google
                   </Button>
-                  <Button variant="link" size="sm" className="text-accent">Forgot Password?</Button>
-                </CardFooter>
-              </form>
+                </form>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      Or continue with email
+                    </span>
+                  </div>
+                </div>
+                <form onSubmit={handleLoginSubmit(onLogin)}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input id="login-email" type="email" placeholder="you@example.com" {...registerLogin("email")} />
+                      {loginErrors.email && <p className="text-sm text-destructive">{loginErrors.email.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password">Password</Label>
+                      <div className="relative">
+                        <Input id="login-password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...registerLogin("password")} />
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      {loginErrors.password && <p className="text-sm text-destructive">{loginErrors.password.message}</p>}
+                    </div>
+                  </div>
+                  <CardFooter className="flex flex-col items-stretch gap-3 px-0 pt-6 pb-0">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Login
+                    </Button>
+                    <Button variant="link" size="sm" className="text-accent">Forgot Password?</Button>
+                  </CardFooter>
+                </form>
+              </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="signup">
@@ -164,36 +184,54 @@ function AuthForm() {
                 <CardTitle className="font-headline text-3xl">Create Account</CardTitle>
                 <CardDescription>Join DreamView and start exploring your dreams.</CardDescription>
               </CardHeader>
-              <form onSubmit={handleSignupSubmit(onRegister)}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-username">Username</Label>
-                    <Input id="signup-username" placeholder="YourUsername" {...registerSignup("username")} />
-                    {signupErrors.username && <p className="text-sm text-destructive">{signupErrors.username.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input id="signup-email" type="email" placeholder="you@example.com" {...registerSignup("email")} />
-                    {signupErrors.email && <p className="text-sm text-destructive">{signupErrors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                     <div className="relative">
-                        <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...registerSignup("password")} />
-                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                    </div>
-                    {signupErrors.password && <p className="text-sm text-destructive">{signupErrors.password.message}</p>}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign Up
+              <CardContent>
+                 <form action={signInWithGoogle}>
+                  <Button variant="outline" className="w-full" type="submit">
+                    <GoogleIcon className="mr-2 h-4 w-4" />
+                    Sign up with Google
                   </Button>
-                </CardFooter>
-              </form>
+                </form>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      Or continue with email
+                    </span>
+                  </div>
+                </div>
+                <form onSubmit={handleSignupSubmit(onRegister)}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-username">Username</Label>
+                      <Input id="signup-username" placeholder="YourUsername" {...registerSignup("username")} />
+                      {signupErrors.username && <p className="text-sm text-destructive">{signupErrors.username.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input id="signup-email" type="email" placeholder="you@example.com" {...registerSignup("email")} />
+                      {signupErrors.email && <p className="text-sm text-destructive">{signupErrors.email.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                       <div className="relative">
+                          <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...registerSignup("password")} />
+                          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                      </div>
+                      {signupErrors.password && <p className="text-sm text-destructive">{signupErrors.password.message}</p>}
+                    </div>
+                  </div>
+                  <CardFooter className="px-0 pt-6 pb-0">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Sign Up
+                    </Button>
+                  </CardFooter>
+                </form>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>

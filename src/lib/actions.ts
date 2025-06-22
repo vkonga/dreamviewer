@@ -8,6 +8,8 @@ import { interpretDream as runAIInterpretationFlow, type InterpretDreamOutput } 
 import { generateImageFromDream as runDreamToImageFlow, type GenerateImageFromDreamOutput } from "@/ai/flows/dream-to-image-flow";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserMetadata } from "@/lib/supabase/database.types";
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 // Helper function to convert Supabase dream row to application Dream type
 function fromSupabaseRow(row: DreamTableRow): Dream {
@@ -264,7 +266,7 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
 
   try {
     console.log(`interpretDream(${dreamId}) - Requesting AI interpretation for dream description: "${dream.description.substring(0, 50)}..."`);
-    const aiResponse: InterpretDreamOutput = await runAIInterpretationFlow({ dreamText: dream.description });
+    const aiResponse: InterpretDreamOutput | null = await runAIInterpretationFlow({ dreamText: dream.description });
     
     if (!aiResponse || !aiResponse.overallMeaning) {
         console.error(`interpretDream(${dreamId}) - AI interpretation flow did not return a valid output.`);
@@ -473,4 +475,35 @@ export async function updateUserProfile(data: { username?: string; email?: strin
   revalidatePath('/profile');
   revalidatePath('/dashboard');
   return { success: true, message: "Profile updated successfully." };
+}
+
+export async function signInWithGoogle() {
+  const supabase = createSupabaseServerClient();
+  const origin = headers().get("origin");
+
+  if (!origin) {
+    // This is a fallback, but origin should typically be present in web requests
+    return { success: false, message: "Could not determine request origin." };
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    console.error("signInWithGoogle - Error:", error.message);
+    // Instead of returning, we can redirect to an error page or back to auth with a query param
+    return redirect(`/auth?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (data.url) {
+    // Redirect to Google's sign-in page
+    redirect(data.url);
+  }
+
+  // This part is unlikely to be reached if there's no error, but it's a good fallback.
+  return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }

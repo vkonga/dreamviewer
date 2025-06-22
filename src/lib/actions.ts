@@ -48,8 +48,6 @@ export async function getDreams(query?: string): Promise<Dream[]> {
     redirect('/auth');
   }
 
-  console.log(`getDreams - Attempting to fetch dreams for user: ${user.id} (query: '${query || ''}')`);
-
   let supabaseQuery = supabase
     .from("dreams")
     .select("*")
@@ -73,7 +71,7 @@ export async function getDreams(query?: string): Promise<Dream[]> {
     console.error(`Supabase error details: message: ${error.message}, code: ${error.code}, details: ${error.details}, hint: ${error.hint}`);
     return [];
   }
-  console.log(`getDreams - Successfully fetched ${data?.length || 0} dreams for user: ${user.id}`);
+  
   return data ? data.map(fromSupabaseRow) : [];
 }
 
@@ -90,7 +88,6 @@ export async function getDreamById(id: string): Promise<Dream | undefined> {
     redirect('/auth');
   }
 
-  console.log(`getDreamById(${id}) - Attempting to fetch for user: ${user.id}`);
   const { data, error } = await supabase
     .from("dreams")
     .select("*")
@@ -103,7 +100,7 @@ export async function getDreamById(id: string): Promise<Dream | undefined> {
     console.error(`Supabase error details: message: ${error.message}, code: ${error.code}, details: ${error.details}, hint: ${error.hint}`);
     return undefined;
   }
-  console.log(`getDreamById(${id}) - Successfully fetched dream.`);
+  
   return data ? fromSupabaseRow(data as DreamTableRow) : undefined;
 }
 
@@ -139,7 +136,6 @@ export async function createDream(values: DreamFormValues) {
     emotions: emotions || [],
   };
 
-  console.log(`createDream - Attempting to insert dream for user: ${user.id}`, newDreamData);
   const { data: insertedDream, error } = await supabase
     .from("dreams")
     .insert(newDreamData)
@@ -158,7 +154,6 @@ export async function createDream(values: DreamFormValues) {
     return { message: "Failed to create dream, no data returned." };
   }
 
-  console.log(`createDream - Dream created successfully with id: ${insertedDream.id}`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
   redirect(`/dreams/${insertedDream.id}`);
@@ -195,7 +190,6 @@ export async function updateDream(id: string, values: DreamFormValues) {
     updated_at: new Date().toISOString(),
   };
 
-  console.log(`updateDream(${id}) - Attempting to update for user: ${user.id}`, dreamToUpdate);
   const { data: updatedDream, error } = await supabase
     .from("dreams")
     .update(dreamToUpdate)
@@ -214,7 +208,6 @@ export async function updateDream(id: string, values: DreamFormValues) {
      return { message: "Failed to update dream, dream not found or unauthorized." };
   }
 
-  console.log(`updateDream(${id}) - Dream updated successfully.`);
   revalidatePath(`/dreams`);
   revalidatePath(`/dreams/${id}`);
   revalidatePath(`/dreams/${id}/edit`);
@@ -235,7 +228,6 @@ export async function deleteDream(id: string) {
     redirect('/auth');
   }
 
-  console.log(`deleteDream(${id}) - Attempting to delete for user: ${user.id}`);
   const { error, count } = await supabase
     .from("dreams")
     .delete({ count: 'exact' })
@@ -252,7 +244,6 @@ export async function deleteDream(id: string) {
      return { message: "Dream not found or unauthorized for deletion." };
   }
 
-  console.log(`deleteDream(${id}) - Dream deleted successfully.`);
   revalidatePath("/dreams");
   revalidatePath("/dashboard");
   // Don't redirect here, let the client-side handle it after a successful toast.
@@ -278,7 +269,6 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
   }
 
   try {
-    console.log(`interpretDream(${dreamId}) - Requesting AI interpretation for dream description: "${dream.description.substring(0, 50)}..."`);
     const aiResponse: InterpretDreamOutput | null = await runAIInterpretationFlow({ dreamText: dream.description });
     
     if (!aiResponse || !aiResponse.overallMeaning) {
@@ -292,7 +282,6 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
       emotionalTone: aiResponse.emotionalTone,
     };
 
-    console.log(`interpretDream(${dreamId}) - AI interpretation received, attempting to save.`);
     const { error: updateError } = await supabase
       .from("dreams")
       .update({
@@ -307,7 +296,6 @@ export async function interpretDream(dreamId: string): Promise<{ interpretation?
       return { interpretation, message: "Successfully interpreted, but failed to save interpretation.", error: updateError.message };
     }
 
-    console.log(`interpretDream(${dreamId}) - Dream interpreted and saved successfully.`);
     revalidatePath(`/dreams/${dreamId}`);
     return { interpretation, message: "Dream interpreted and saved successfully." };
 
@@ -339,7 +327,6 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
   }
 
   try {
-    console.log(`generateDreamImage(${dreamId}) - Requesting AI image generation for dream: "${dream.title}"`);
     const aiResponse: GenerateImageFromDreamOutput = await runDreamToImageFlow({ dreamText: dream.description });
     
     if (!aiResponse || !aiResponse.imageDataUri) {
@@ -347,7 +334,6 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
         throw new Error('AI image generation failed. The model might not have produced an image.');
     }
     
-    console.log(`generateDreamImage(${dreamId}) - Dream image generated, attempting to save URI to database.`);
     const { error: updateError } = await supabase
       .from("dreams")
       .update({
@@ -362,7 +348,6 @@ export async function generateDreamImage(dreamId: string): Promise<{ imageDataUr
       return { imageDataUri: aiResponse.imageDataUri, message: "Successfully generated image, but failed to save it.", error: updateError.message };
     }
 
-    console.log(`generateDreamImage(${dreamId}) - Dream image generated and saved successfully.`);
     revalidatePath(`/dreams/${dreamId}`);
     return { imageDataUri: aiResponse.imageDataUri, message: "Dream image generated and saved successfully." };
 
@@ -416,12 +401,10 @@ export async function registerUser(data: { email: string; password_DO_NOT_USE: s
   let message = "Registration successful! ";
   if (signUpData.session === null && signUpData.user?.email_confirmed_at === null ) {
      message += "Please check your email to confirm your account.";
-     console.log(`registerUser - User ${data.email} registered, email confirmation pending.`);
   } else {
      message += "You are now logged in.";
      // Removing revalidatePath makes registration faster.
      // The client will redirect via onAuthStateChange and the new page will have the correct session.
-     console.log(`registerUser - User ${data.email} registered and logged in.`);
   }
 
   return { success: true, message };
@@ -434,7 +417,6 @@ export async function logoutUser() {
     console.error("logoutUser - Error:", error.message);
     return { success: false, message: `Logout failed: ${error.message}` };
   }
-  console.log("logoutUser - User logged out successfully.");
   return { success: true, message: "Logged out successfully." };
 }
 
@@ -483,11 +465,9 @@ export async function updateUserProfile(data: { username?: string; email?: strin
   }
 
   if (Object.keys(updates).length === 0) {
-    console.log("updateUserProfile - No changes to update.");
     return { success: true, message: "No changes to update." };
   }
 
-  console.log(`updateUserProfile - Attempting to update profile for user ${currentUser.id}:`, updates);
   const { error } = await supabase.auth.updateUser(updates);
 
   if (error) {
@@ -495,7 +475,6 @@ export async function updateUserProfile(data: { username?: string; email?: strin
     return { success: false, message: `Profile update failed: ${error.message}` };
   }
 
-  console.log(`updateUserProfile - Profile updated successfully for user ${currentUser.id}.`);
   revalidatePath('/profile');
   revalidatePath('/dashboard');
   return { success: true, message: "Profile updated successfully." };

@@ -31,15 +31,6 @@ export async function generateImageFromDream(input: GenerateImageFromDreamInput)
   return dreamToImageFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'dreamToImagePrompt',
-  input: {schema: GenerateImageFromDreamInputSchema},
-  output: {schema: GenerateImageFromDreamOutputSchema},
-  // Simple text prompt, the actual generation happens via model config
-  prompt: `Generate an artistic, visually evocative image based on the following dream description: {{{dreamText}}}. Capture the main themes and mood.`,
-});
-
-
 const dreamToImageFlow = ai.defineFlow(
   {
     name: 'dreamToImageFlow',
@@ -49,14 +40,10 @@ const dreamToImageFlow = ai.defineFlow(
   async (input) => {
     // Use the specific Gemini model for image generation
     const {media, text} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp', // IMPORTANT: Specific model for image generation
+      model: 'googleai/gemini-2.0-flash-preview-image-generation', // IMPORTANT: Correct model for image generation
       prompt: `Generate an artistic, visually evocative image based on the following dream description: ${input.dreamText}. Capture the main themes and mood. This is for a dream journal app.`,
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both
-        // Optional: Add safety settings if needed, though defaults are generally fine
-        // safetySettings: [
-        //   { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' }
-        // ]
       },
     });
 

@@ -500,11 +500,17 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
 export async function signInWithGoogle() {
   const supabase = createSupabaseServerClient();
+  const headerList = headers();
+  const host = headerList.get("host");
+  const proto = headerList.get("x-forwarded-proto") ?? "http";
+  
+  // Dynamically construct the redirect URL. This is more robust than hardcoding.
+  const redirectURL = `${proto}://${host}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: 'https://6000-firebase-studio-1750246191636.cluster-6dx7corvpngoivimwvvljgokdw.cloudworkstations.dev/auth/callback',
+      redirectTo: redirectURL,
     },
   });
 
@@ -519,5 +525,3 @@ export async function signInWithGoogle() {
 
   return redirect(`/auth?error=${encodeURIComponent("Could not get Google sign-in URL.")}`);
 }
-
-    

@@ -4,52 +4,52 @@
 
 @layer base {
   :root {
-    --background: 233 55% 37%; /* Deep Indigo */
-    --foreground: 255 45% 95%; /* Light Lavender/Off-white */
+    --background: 340 30% 20%; /* Dark Pink/Plum */
+    --foreground: 340 50% 95%; /* Light Pink/Off-white */
 
-    --muted: 233 50% 45%; /* Indigo variant for muted backgrounds */
-    --muted-foreground: 255 45% 80%; /* Lighter Lavender for muted text */
+    --muted: 340 30% 30%; /* Muted pink variant */
+    --muted-foreground: 340 30% 75%; /* Lighter pink for muted text */
 
-    --popover: 233 50% 32%; /* Darker Indigo for popovers */
-    --popover-foreground: 255 45% 95%; /* Light Lavender/Off-white for popover text */
+    --popover: 340 30% 15%; /* Darker pink for popovers */
+    --popover-foreground: 340 50% 95%; /* Light pink for popover text */
 
-    --card: 233 50% 42%; /* Indigo variant for card backgrounds */
-    --card-foreground: 255 45% 95%; /* Light Lavender/Off-white for card text */
+    --card: 340 30% 25%; /* Pink variant for card backgrounds */
+    --card-foreground: 340 50% 95%; /* Light pink for card text */
 
-    --border: 233 40% 55%; /* Indigo-gray for borders */
-    --input: 233 40% 50%; /* Indigo-gray for input backgrounds */
+    --border: 340 20% 40%; /* Pink-gray for borders */
+    --input: 340 20% 35%; /* Pink-gray for input backgrounds */
 
-    --primary: 255 45% 84%; /* Soft Lavender */
-    --primary-foreground: 233 55% 25%; /* Dark Indigo for text on primary */
+    --primary: 340 90% 70%; /* Bright Pink */
+    --primary-foreground: 340 50% 10%; /* Dark Pink for text on primary */
 
-    --secondary: 200 80% 75%; /* Lighter Pale Blue for secondary actions */
-    --secondary-foreground: 200 50% 20%; /* Dark Blue for text on secondary */
+    --secondary: 340 60% 80%; /* Lighter, less saturated pink */
+    --secondary-foreground: 340 30% 15%; /* Dark pink for text on secondary */
 
-    --accent: 200 93% 85%; /* Pale Blue */
-    --accent-foreground: 200 60% 25%; /* Dark Blue for text on accent */
+    --accent: 340 95% 75%; /* Vibrant Pink */
+    --accent-foreground: 340 50% 15%; /* Dark pink for text on accent */
 
     --destructive: 0 70% 60%; /* A suitable red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White text on destructive */
 
-    --ring: 200 93% 85%; /* Pale Blue for focus rings */
+    --ring: 340 90% 70%; /* Bright Pink for focus rings */
 
     --radius: 0.5rem;
 
     /* Sidebar specific colors - adjusted for the new theme */
-    --sidebar-background: 233 55% 30%; /* Darker Indigo for sidebar */
-    --sidebar-foreground: 255 45% 90%; /* Light Lavender for sidebar text */
-    --sidebar-primary: 255 45% 84%; /* Soft Lavender for active/primary items in sidebar */
-    --sidebar-primary-foreground: 233 55% 25%; /* Dark Indigo for text on sidebar primary */
-    --sidebar-accent: 233 50% 40%; /* Indigo variant for hover/accent in sidebar */
-    --sidebar-accent-foreground: 255 45% 95%; /* Light Lavender for text on sidebar accent */
-    --sidebar-border: 233 40% 45%; /* Border color within sidebar */
-    --sidebar-ring: 200 93% 85%; /* Pale Blue for focus rings in sidebar */
+    --sidebar-background: 340 30% 18%; /* Darker Pink for sidebar */
+    --sidebar-foreground: 340 40% 90%; /* Light Pink for sidebar text */
+    --sidebar-primary: 340 90% 70%; /* Bright Pink for active/primary items in sidebar */
+    --sidebar-primary-foreground: 340 50% 10%; /* Dark Pink for text on sidebar primary */
+    --sidebar-accent: 340 30% 28%; /* Pink variant for hover/accent in sidebar */
+    --sidebar-accent-foreground: 340 50% 95%; /* Light Pink for text on sidebar accent */
+    --sidebar-border: 340 20% 35%; /* Border color within sidebar */
+    --sidebar-ring: 340 90% 70%; /* Bright Pink for focus rings in sidebar */
 
-    --chart-1: 255 60% 70%; /* Lavender shade */
-    --chart-2: 200 70% 70%; /* Blue shade */
-    --chart-3: 280 60% 70%; /* Purple shade */
-    --chart-4: 230 60% 70%; /* Indigo shade */
-    --chart-5: 0 0% 80%; /* Light gray */
+    --chart-1: 340 80% 70%; /* Pink shade 1 */
+    --chart-2: 330 70% 75%; /* Pink shade 2 */
+    --chart-3: 350 80% 75%; /* Pink shade 3 */
+    --chart-4: 320 70% 70%; /* Pink shade 4 (more purple) */
+    --chart-5: 340 20% 80%; /* Light grayish pink */
   }
 }
 

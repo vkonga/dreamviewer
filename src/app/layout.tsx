@@ -28,20 +28,20 @@ function MissingEnvVarsError() {
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-foreground">
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
           <AlertTriangle className="w-16 h-16 text-destructive mb-6" />
-          <h1 className="text-3xl font-bold text-destructive mb-4">Configuration Error</h1>
-          <p className="text-lg mb-2">The application is missing essential Supabase configuration.</p>
+          <h1 className="text-3xl font-bold text-destructive mb-4">Server Configuration Error</h1>
+          <p className="text-lg mb-2">The application is missing essential or invalid Supabase configuration.</p>
           <p className="text-muted-foreground mb-6 max-w-md">
-            Please ensure you have a <code>.env.local</code> file in the root of your project with the following variables set (replace with your actual Supabase project values):
+            For this application to work, you must set the following environment variables in your hosting provider's settings (e.g., Google Cloud Secret Manager for Firebase App Hosting). Ensure the URL is a valid, full URL.
           </p>
           <div className="bg-muted p-4 rounded-md text-left text-sm inline-block mb-6">
             <pre><code>
-              NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL<br/>
-              NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+              NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co<br/>
+              NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
             </code></pre>
           </div>
           <p className="text-muted-foreground">
             You can find these values in your Supabase project dashboard under Project Settings &gt; API.
-            After creating or updating the <code>.env.local</code> file, please restart your Next.js development server.
+            After setting the secrets, you must **redeploy** your application.
           </p>
           <a
             href="https://supabase.com/dashboard"
@@ -62,13 +62,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  // More robust check: ensure variables are present and not empty/whitespace
-  const isValidSupabaseConfig = 
-    supabaseUrl && supabaseUrl.trim() !== "" &&
-    supabaseAnonKey && supabaseAnonKey.trim() !== "";
+  let isValidSupabaseConfig = false;
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseUrl.trim() !== '' && supabaseAnonKey && supabaseAnonKey.trim() !== '') {
+      // Try to construct a URL object to validate the URL format.
+      // This will throw a TypeError if the URL is not valid.
+      new URL(supabaseUrl);
+      isValidSupabaseConfig = true;
+    }
+  } catch (error) {
+    // If new URL() fails, the config is invalid.
+    console.error("RootLayout Supabase config validation failed:", error);
+    isValidSupabaseConfig = false;
+  }
 
   if (!isValidSupabaseConfig) {
     return <MissingEnvVarsError />;

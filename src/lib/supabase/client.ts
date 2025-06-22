@@ -2,18 +2,20 @@
 "use client"
 
 import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/lib/supabase/database.types'; // You'll need to generate this type
+import type { Database } from '@/lib/supabase/database.types';
 
-// Define a function to create a Supabase client for client-side operations
-// Ensure you have NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local
 export function createSupabaseClientComponentClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    // Consider throwing an error or logging a more specific warning
-    // For now, returning a potentially non-functional client if env vars are missing
-    console.warn("Supabase URL or Anon Key is missing. Client-side Supabase functionality may be impaired.");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.trim() === '' || supabaseAnonKey.trim() === '') {
+    // This will be caught by the nearest Error Boundary.
+    // It's better than crashing with a cryptic "Invalid URL" message.
+    throw new Error("CRITICAL ERROR: Missing Supabase credentials in client environment. Check hosting provider's settings for NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   }
+
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+    supabaseUrl,
+    supabaseAnonKey
+  );
 }

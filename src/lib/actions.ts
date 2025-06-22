@@ -500,12 +500,17 @@ export async function updateUserProfile(data: { username?: string; email?: strin
 
 export async function signInWithGoogle() {
   const supabase = createSupabaseServerClient();
-  const origin = headers().get('origin');
-
-  if (!origin) {
-    // This is an unlikely scenario in a browser context but good for safety.
-    return redirect(`/auth?error=${encodeURIComponent("Could not determine request origin for Google sign-in.")}`);
+  const headersList = headers();
+  const host = headersList.get('host');
+  // In a production environment (like Firebase App Hosting), the protocol is reported as http,
+  // but the user is accessing the site via https. The 'x-forwarded-proto' header gives the correct protocol.
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  
+  if (!host) {
+     return redirect(`/auth?error=${encodeURIComponent("Could not determine the host from the request headers.")}`);
   }
+
+  const origin = `${protocol}://${host}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

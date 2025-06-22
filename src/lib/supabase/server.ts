@@ -1,22 +1,22 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/lib/supabase/database.types'; // You'll need to generate this type
+import type { Database } from '@/lib/supabase/database.types';
 
-// Define a function to create a Supabase client for server-side operations
-// Ensure you have NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local
 export function createSupabaseServerClient() {
   const cookieStore = cookies()
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    // Consider throwing an error or logging a more specific warning
-    // For now, returning a potentially non-functional client if env vars are missing
-     console.warn("Supabase URL or Anon Key is missing. Server-side Supabase functionality may be impaired.");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.trim() === '' || supabaseAnonKey.trim() === '') {
+    // This error will be thrown on the server, which is good.
+    throw new Error("CRITICAL ERROR: Missing Supabase credentials on the server. Check hosting provider's settings for NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   }
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {

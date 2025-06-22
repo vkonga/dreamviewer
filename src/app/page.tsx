@@ -12,12 +12,11 @@ export default function LandingPage() {
         <section className="relative h-screen flex items-center justify-center text-center text-white">
           {/* Background Image */}
           <Image
-            src="https://placehold.co/1920x1080.png"
+            src="/hero-background.png"
             alt="A person standing on a rock looking up at a vast cosmic sky with swirling galaxies and nebulae"
             layout="fill"
             objectFit="cover"
             className="z-0"
-            data-ai-hint="cosmic dreamer"
             priority // Load this image first
           />
           {/* Dark overlay for text readability */}
